@@ -67,9 +67,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
   const [showDetails, setShowDetails] = useState(false);
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
-  const isEpeResidencial = userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL;
-  const isEpeComercial = userType === UserType.EPE_NO_PROSUMIDOR_COMERCIAL;
-
+  
   const pieData: PieData[] = [
     { value: Math.max(0, results.savingsConsumption), color: '#8b5cf6', label: 'Autoconsumo' },
     { value: Math.max(0, results.savingsTax), color: '#f97316', label: 'Impuestos' },
@@ -143,15 +141,15 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
         <div className="print-break-inside bg-gradient-to-br from-teal-800 to-emerald-900 text-white rounded-xl p-8 shadow-xl">
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2 border-b border-emerald-700 pb-3"><Leaf className="w-6 h-6 text-emerald-300" /> Impacto Ambiental Positivo</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-            <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Energía Generada</p><p className="text-3xl font-bold">{formatNumber(results.details?.["Energía Generada Total"] as number || 0, 1)} <span className="text-lg font-medium">kWh</span></p></div>
+            <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Energía Generada</p><p className="text-3xl font-bold">{formatNumber(results.details?.["Energía Generada Total (kWh)"] as number || results.details?.["Generación Estimada (kWh)"] as number || results.details?.["Energía Generada (kWh)"] as number || 0, 1)} <span className="text-lg font-medium">kWh</span></p></div>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">CO₂ Evitado</p><p className="text-3xl font-bold">{formatNumber(results.co2Avoided, 2)} <span className="text-lg font-medium">kg</span></p></div>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Árboles Equiv.</p><div className="flex items-center justify-center gap-2"><Trees className="w-8 h-8 text-emerald-300" /><p className="text-3xl font-bold">{results.treesEquivalent}</p></div></div>
           </div>
         </div>
 
-        {(isGD || isEpeResidencial || isEpeComercial) && results.details && (
+        {results.details && (
           <div className="no-print bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <button onClick={() => setShowDetails(!showDetails)} className="w-full flex justify-between items-center p-5 bg-gray-50 hover:bg-gray-100 transition-colors"><span className="font-bold text-gray-700 flex items-center gap-2"><List size={20} /> Detalles de Cálculo</span>{showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
+            <button onClick={() => setShowDetails(!showDetails)} className="w-full flex justify-between items-center p-5 bg-gray-50 hover:bg-gray-100 transition-colors"><span className="font-bold text-gray-700 flex items-center gap-2"><List size={20} /> Detalles de Cálculo (Lógica Interna)</span>{showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</button>
             {showDetails && (
               <div className="p-0 border-t border-gray-200">
                 <table className="min-w-full text-sm divide-y divide-gray-100">

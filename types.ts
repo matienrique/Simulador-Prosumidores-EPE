@@ -1,4 +1,5 @@
 
+
 export enum UserType {
   PROSUMIDOR = 'PROSUMIDOR',
   NO_PROSUMIDOR = 'NO_PROSUMIDOR',
@@ -93,6 +94,7 @@ export interface ProsumidorData {
   reconGSF: number;
   taxStatus?: TaxStatus;
   totalBill: number;
+  isRosario?: boolean;
 }
 
 export interface ProsumidorGDData {
@@ -133,6 +135,7 @@ export interface NoProsumidorData {
   ley12692: number;
   taxStatus?: TaxStatus;
   totalBill: number;
+  isRosario?: boolean;
   gdData?: NoProsumidorGDInput;
 }
 

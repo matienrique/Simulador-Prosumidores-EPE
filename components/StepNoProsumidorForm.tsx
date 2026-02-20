@@ -803,6 +803,29 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Detalle de facturación</h3>
             
+            {/* Rosario Checkbox */}
+            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
+              <input
+                type="checkbox"
+                id="isRosario"
+                checked={formData.isRosario || false}
+                onChange={(e) => handleChange('isRosario', e.target.checked)}
+                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label htmlFor="isRosario" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                Resido en la ciudad de Rosario
+              </label>
+            </div>
+
+            {formData.isRosario && (
+              <div className="mb-6 flex items-start gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100 shadow-sm animate-fade-in">
+                <Info className="text-blue-600 w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-blue-800">
+                  En los impuestos se aplicarán un cargo del 1,80% y 0,60% provenientes de las ordenanzas municipales 1592/62 y 1618/62 respectivamente.
+                </span>
+              </div>
+            )}
+
             {/* A.2.1 Condición fiscal */}
             <div className="mb-6">
               <label className={labelStyle}>¿Cuál es tu condición fiscal? <span className="text-red-500">*</span></label>

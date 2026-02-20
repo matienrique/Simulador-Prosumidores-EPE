@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { UserType, ProsumidorMode, ProsumidorData, ProsumidorGDData, NoProsumidorData, NoProsumidorCategory, CalculationResult } from './types';
 import StepUserType from './components/StepUserType';
@@ -25,7 +26,8 @@ const initialProsumidorData: ProsumidorData = {
   ley12692: 0,
   reconGSF: 0,
   taxStatus: undefined,
-  totalBill: 0
+  totalBill: 0,
+  isRosario: false
 };
 
 const initialProsumidorGDData: ProsumidorGDData = {
@@ -47,7 +49,8 @@ const initialNoProsumidorData: NoProsumidorData = {
   bands: [initialBand],
   cap: 0,
   ley12692: 0,
-  totalBill: 0
+  totalBill: 0,
+  isRosario: false
 };
 
 const App: React.FC = () => {
