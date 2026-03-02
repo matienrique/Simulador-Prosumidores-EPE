@@ -32,8 +32,8 @@ const Footer: React.FC = () => {
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Mail className="w-5 h-5 text-white" />
             </div>
-            <a href="mailto:eficiencia@santafe.gov.ar" className="font-bold hover:underline text-white">
-              eficiencia@santafe.gov.ar
+            <a href="mailto:secretariadeenergiasantafe@gmail.com" className="font-bold hover:underline text-white">
+              secretariadeenergiasantafe@gmail.com
             </a>
           </div>
         </div>
