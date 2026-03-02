@@ -22,8 +22,8 @@ const StepProsumidorModeSelect: React.FC<Props> = ({ onSelect, onBack }) => {
           <div className="bg-violet-100 p-5 rounded-full mb-4 group-hover:bg-violet-200 transition-colors">
             <Zap className="w-12 h-12 text-violet-600" />
           </div>
-          <span className="text-xl font-bold text-gray-800 px-4 text-center">No soy consumidor de Gran Demanda</span>
-          <span className="text-sm text-gray-500 mt-2">Usuario Residencial / Comercial</span>
+          <span className="text-xl font-bold text-gray-800 px-4 text-center">Pequeña demanda</span>
+          <span className="text-sm text-gray-500 mt-2">Usuario Residencial, Comercial, Industrial</span>
         </button>
 
         <button
@@ -33,8 +33,7 @@ const StepProsumidorModeSelect: React.FC<Props> = ({ onSelect, onBack }) => {
           <div className="bg-violet-100 p-5 rounded-full mb-4 group-hover:bg-violet-200 transition-colors">
             <Factory className="w-12 h-12 text-violet-600" />
           </div>
-          <span className="text-xl font-bold text-gray-800 px-4 text-center">Soy consumidor de Gran Demanda</span>
-          <span className="text-sm text-gray-500 mt-2">Tarifas T2, T3, etc.</span>
+          <span className="text-xl font-bold text-gray-800 px-4 text-center">Gran Demanda</span>
         </button>
       </div>
 

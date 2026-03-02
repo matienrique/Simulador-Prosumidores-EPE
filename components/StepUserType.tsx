@@ -27,7 +27,7 @@ const StepUserType: React.FC<Props> = ({ onSelect }) => {
                 </div>
               </div>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Desde aquí puedes acceder a los flujos de simulación de consumo y ahorro energético para usuarios de la Empresa Provincial de la Energía.
+                Mediante el siguiente simulador podrás estimar los ahorros económicos en tu factura eléctrica o calcular qué potencia de energía renovable podés instalar por formar parte del Programa Prosumidores 4.0
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

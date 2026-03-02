@@ -1,0 +1,12 @@
+body {
+  background-color: #ffffff;
+  min-height: 100vh;
+}
+
+.bg-epe-gradient {
+  background: linear-gradient(90deg, #F9D423 0%, #FF4E50 25%, #D4145A 50%, #911A6C 75%, #2E3192 100%);
+}
+
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}

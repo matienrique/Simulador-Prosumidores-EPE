@@ -1,10 +1,10 @@
 import { CalculationResult, ProsumidorData, NoProsumidorData, NoProsumidorCategory, ProsumidorGDData, TaxStatus, Band } from '../types';
 
 const CONSTANTS = {
-  [NoProsumidorCategory.RESIDENCIAL]: { autoconsumo: 0.40, reconUnit: 109.91, gsfUnit: 23.49 },
-  [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, reconUnit: 108.79263, gsfUnit: 39.2 },
-  [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, reconUnit: 108.79263, gsfUnit: 39.2 },
-  [NoProsumidorCategory.GRAN_DEMANDA]: { autoconsumo: 0.80, reconUnit: 98.43, gsfUnit: 39.2 },
+  [NoProsumidorCategory.RESIDENCIAL]: { autoconsumo: 0.40, reconUnit: 109.91, gsfUnit: 20.93 },
+  [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, reconUnit: 98.43, gsfUnit: 34.93 },
+  [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, reconUnit: 98.43, gsfUnit: 34.93 },
+  [NoProsumidorCategory.GRAN_DEMANDA]: { autoconsumo: 0.80, reconUnit: 98.43, gsfUnit: 34.93 },
 };
 
 const safeDiv = (num: number, den: number): number => {
@@ -34,29 +34,15 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
   const lastBand = bands[bands.length - 1];
   const prevBands = bands.slice(0, bands.length - 1);
   const sumPrevEnergy = prevBands.reduce((sum, b) => sum + b.energy, 0);
-  // er es la energía inyectada por el usuario (Recibida por EPE)
-  // ee es la energía entregada por EPE al usuario
-  // Consumo total real (Sin prosumidor) = (eg - er) + ee
-  // Donde (eg - er) es el autoconsumo.
-  // Sin embargo, para la última banda, la lógica es:
-  // kWh última banda CON prosumidor = ee - sumPrevEnergy (si ee > sumPrevEnergy)
-  // kWh última banda SIN prosumidor = (ee + autoconsumo) - sumPrevEnergy
   
   const autoconsumo = Math.max(0, eg - er); 
-  // Nota: En la fórmula original "consumoUltimaBanda" se calculaba como (eg + ee - er) - sumPrev. 
-  // (eg - er) es autoconsumo. Entonces es (ee + autoconsumo) - sumPrev.
   const consumoUltimaBanda = (ee + autoconsumo) - sumPrevEnergy;
 
   const sumPrevAmount = prevBands.reduce((sum, b) => sum + b.amount, 0);
   const lastBandPriceRatio = safeDiv(lastBand.amount, lastBand.energy);
   
-  // Subtotal básico SIN prosumidores (reconstruido)
-  // Se asume que el precio unitario de la última banda se mantiene para el consumo adicional
   const subtotalSinProsumidores = serviceQuota + sumPrevAmount + (lastBandPriceRatio * consumoUltimaBanda);
-
-  // Subtotal básico CON prosumidores (datos de factura actual)
-  const sumAllBandsAmount = bands.reduce((sum, b) => sum + b.amount, 0);
-  const subtotalConProsumidores = serviceQuota + sumAllBandsAmount;
+  const subtotalConProsumidores = serviceQuota + bands.reduce((sum, b) => sum + b.amount, 0);
 
   const importeConPros = totalBill;
   let importeSinPros = 0;
@@ -76,7 +62,6 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
 
   const ahorroConsumo = subtotalSinProsumidores - subtotalConProsumidores;
   
-  // Impuestos CON Prosumidores (recalculados o estimados)
   const baseTaxCon = subtotalConProsumidores - reconEPE;
   let finalImpuestosConPros = 0;
   
@@ -88,31 +73,24 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
       finalImpuestosConPros = (baseTaxCon * (ivaCorrespondiente + 0.06 + 0.015)) + (cap * (1 + ivaCorrespondiente)) + ley12692;
   }
 
-  // --- LOGICA ROSARIO ---
   const Orden_Mun_1592_62 = isRosario ? 0.006 : 0;
   const Orden_Mun_1618_62 = isRosario ? 0.018 : 0;
   const totalRosarioRate = Orden_Mun_1592_62 + Orden_Mun_1618_62;
 
-  // Cálculo adicional para impuestos SIN Prosumidores
   const Imp_ros_sin = subtotalSinProsumidores * totalRosarioRate;
   impuestosSinPros += Imp_ros_sin;
   importeSinPros += Imp_ros_sin;
 
-  // Cálculo adicional para impuestos CON Prosumidores (solo afecta desglose finalImpuestosConPros)
   const Imp_ros_con = baseTaxCon * totalRosarioRate;
   finalImpuestosConPros += Imp_ros_con;
 
   const savingsRecon = reconEPE + reconGSF;
   const ahorroTotal = importeSinPros - importeConPros;
-  
-  // Ajuste solicitado: ahorroImpuestos = ahorroTotal - ahorroConsumo - savingsRecon
   const ahorroImpuestos = impuestosSinPros - finalImpuestosConPros;
 
   const ahorroTotalPercent = safeDiv(ahorroTotal, importeSinPros) * 100;
   const autoconsumoPercent = safeDiv(autoconsumo, eg) * 100;
   
-  // Modificación solicitada: Porcentaje de generación con respecto al consumo
-  // Fórmula: Energía generada / (Energía generada + Energía entregada - Energía inyectada)
   const totalConsumoReal = eg + ee - er;
   const injectionPercent = safeDiv(eg, totalConsumoReal) * 100;
 
@@ -340,7 +318,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     else if (gd.taxStatus === 'Exento') { ivaRate = 0.21; percepcionRate = 0.0; }
     
     const totalImpuestosCPGD = (ivaRate + 0.06 + 0.015 + percepcionRate) * baseImpuestosCPGD + (gd.cap * (1 + ivaRate + percepcionRate)) + gd.ley12692;
-    const reconGSF = (energiaGeneradaResto + energiaGeneradaPico + energiaGeneradaValle) * 39.2;
+    const reconGSF = (energiaGeneradaResto + energiaGeneradaPico + energiaGeneradaValle) * 34.93;
     const totalPagarCPGD = baseImpuestosCPGD + totalImpuestosCPGD - reconGSF;
     
     const ahorroReconEPE = reconEPESF_CPGD;
@@ -352,7 +330,6 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     const co2 = 0.2306 * (energiaGeneradaResto + energiaGeneradaValle + energiaGeneradaPico);
     const energiaGen = energiaGeneradaResto + energiaGeneradaValle + energiaGeneradaPico;
 
-    // Efficiency metrics for No Prosumidor GD
     const autoconsumoKwh = energiaGen - energiaRecibidaTotal;
     const autoconsumoPercent = safeDiv(autoconsumoKwh, energiaGen) * 100;
     
@@ -442,7 +419,6 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   const reconocimientoEPE = RECON_UNIT * energiaRecibida;
   const baseImponible = subtotalBasicoConProsumidores - reconocimientoEPE;
   
-  // Rosario Logic
   const isRosarioApplicable = data.isRosario && (category === NoProsumidorCategory.RESIDENCIAL || category === NoProsumidorCategory.COMERCIAL || category === NoProsumidorCategory.INDUSTRIAL);
   const Orden_Mun_1592_62 = isRosarioApplicable ? 0.006 : 0;
   const Orden_Mun_1618_62 = isRosarioApplicable ? 0.018 : 0;
@@ -450,7 +426,6 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
 
   let impuestosConPros = (baseImponible * (IVA_correspondiente + 0.06 + 0.015)) + (cap * (1 + IVA_correspondiente)) + ley12692 + Percepcion_correspondiente;
   
-  // Update with Rosario
   impuestosConPros = impuestosConPros + Imp_ros_con;
 
   const reconocimientoGSF = GSF_UNIT * energiaRecibida;
@@ -458,10 +433,8 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   const ahorroTotal = importeFacturaSinPros - facturaConPros;
   const co2 = energiaGenerada * 0.2306;
 
-  // Efficiency metrics for No Prosumidor Standard
   const autoconsumoPercent = safeDiv(autoconsumo2, energiaGenerada) * 100;
   
-  // Total Consumo Real = sum(bands.energy)
   const totalConsumoReal = bands.reduce((sum, b) => sum + b.energy, 0);
   const injectionPercent = safeDiv(energiaGenerada, totalConsumoReal) * 100;
 

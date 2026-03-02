@@ -96,7 +96,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
             />
           </div>
           <div>
-            <label className={labelStyle}>Reconocimiento GSF ($)</label>
+            <label className={labelStyle}>Cancela. Fact. PROSUMIDOR MAX</label>
             <input
               type="number" step="0.01" min="0"
               value={formData.reconGSF_GD || ''} onChange={(e) => handleNumberChange('reconGSF_GD', e.target.value)}
@@ -133,6 +133,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
       {/* 2.2 Información de Importes Básico */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold text-violet-800 mb-4 border-b pb-2 border-violet-100">Información de lecturas, consumos y componentes del importe básico</h3>
+        <p className="text-xs text-gray-500 mb-4">el usuario debe completar con los importes de la ultima columna que figura en la hoja 2 de la factura</p>
         
         <div className="flex flex-col gap-6 max-w-2xl mx-auto md:mx-0">
             <div>
@@ -151,17 +152,35 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
               <label className={labelStyle}>Cargo Pot. Adq. Pico</label>
               <input type="number" step="0.01" value={formData.cargoPotenciaPico || ''} onChange={(e) => handleNumberChange('cargoPotenciaPico', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
             </div>
-            <div>
-             <label className={labelStyle}>E. Activa Cons. Pico ($)</label>
-             <input type="number" step="0.01" value={formData.eaConsPico || ''} onChange={(e) => handleNumberChange('eaConsPico', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyle}>E. Activa Cons. Pico ($)</label>
+                <input type="number" step="0.01" value={formData.eaConsPico || ''} onChange={(e) => handleNumberChange('eaConsPico', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+              </div>
+              <div>
+                <label className={labelStyle}>Precio unitario pico</label>
+                <input type="number" step="0.000001" value={formData.precioUnitarioPico || ''} onChange={(e) => handleNumberChange('precioUnitarioPico', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+              </div>
             </div>
-            <div>
-             <label className={labelStyle}>E. Activa Cons. Resto ($)</label>
-             <input type="number" step="0.01" value={formData.eaConsResto || ''} onChange={(e) => handleNumberChange('eaConsResto', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyle}>E. Activa Cons. Resto ($)</label>
+                <input type="number" step="0.01" value={formData.eaConsResto || ''} onChange={(e) => handleNumberChange('eaConsResto', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+              </div>
+              <div>
+                <label className={labelStyle}>Precio unitario resto</label>
+                <input type="number" step="0.000001" value={formData.precioUnitarioResto || ''} onChange={(e) => handleNumberChange('precioUnitarioResto', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+              </div>
             </div>
-            <div>
-             <label className={labelStyle}>E. Activa Cons. Valle ($)</label>
-             <input type="number" step="0.01" value={formData.eaConsValle || ''} onChange={(e) => handleNumberChange('eaConsValle', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyle}>E. Activa Cons. Valle ($)</label>
+                <input type="number" step="0.01" value={formData.eaConsValle || ''} onChange={(e) => handleNumberChange('eaConsValle', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+              </div>
+              <div>
+                <label className={labelStyle}>Precio unitario valle</label>
+                <input type="number" step="0.000001" value={formData.precioUnitarioValle || ''} onChange={(e) => handleNumberChange('precioUnitarioValle', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+              </div>
             </div>
             <div>
              <label className={labelStyle}>Recargo/Bonif FP ($)</label>

@@ -3,37 +3,43 @@ import { Phone, Mail, MapPin } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="mt-12 bg-white border-t border-gray-200 py-8 no-print">
-      <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-600">
+    <footer className="mt-12 bg-epe-gradient py-10 no-print text-white shadow-inner border-t border-white/20">
+      <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
         
-        <div className="space-y-3">
-          <h4 className="font-bold text-gray-800 uppercase tracking-wider mb-2">Contacto</h4>
+        <div className="space-y-4">
+          <h4 className="font-black text-white uppercase tracking-wider mb-2 drop-shadow-sm">Contacto</h4>
           
           <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <p>Francisco Miguens 260. Torre 2. Piso 4.</p>
-              <p>Ciudad de Santa Fe</p>
+              <p className="font-medium">Francisco Miguens 260. Torre 2. Piso 4.</p>
+              <p className="opacity-90">Ciudad de Santa Fe</p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-3 md:text-right">
+        <div className="space-y-4 md:text-right">
           <div className="flex items-center gap-3 md:justify-end">
-            <Phone className="w-5 h-5 text-gray-400" />
-            <p>Cel: (0341) 472-1556 <span className="text-gray-400">|</span> Interno 45790</p>
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Phone className="w-5 h-5 text-white" />
+            </div>
+            <p className="font-medium">Cel: (0342) 4505882 <span className="opacity-50 mx-1">|</span> Interno 1303</p>
           </div>
           
           <div className="flex items-center gap-3 md:justify-end">
-            <Mail className="w-5 h-5 text-gray-400" />
-            <a href="mailto:secretariaenergia@santafe.gov.ar" className="text-violet-600 hover:underline">
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Mail className="w-5 h-5 text-white" />
+            </div>
+            <a href="mailto:secretariaenergia@santafe.gov.ar" className="font-bold hover:underline text-white">
               secretariaenergia@santafe.gov.ar
             </a>
           </div>
         </div>
 
       </div>
-      <div className="text-center mt-8 pt-4 border-t border-gray-100 text-xs text-gray-400">
+      <div className="text-center mt-10 pt-6 border-t border-white/10 text-xs opacity-70">
         &copy; {new Date().getFullYear()} Gobierno de Santa Fe
       </div>
     </footer>

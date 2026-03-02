@@ -140,7 +140,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
         <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Detalle de Facturación</h3>
         
         <div className="mb-6">
-          <label className={labelStyle}>Cuota de Servicio ($)</label>
+          <label className={labelStyle}>Cuota de servicio (importe final en pesos)</label>
           <input
             type="number"
             min="0"
@@ -152,8 +152,11 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
         </div>
 
         <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="text-md font-medium text-gray-700">Bandas de Consumo</h4>
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h4 className="text-md font-medium text-gray-700">Bandas de Consumo</h4>
+              <p className="text-xs text-gray-500 mt-1">el usuario debe completar la cantidad de bandas según lo informado en la factura y los kWh consumidos</p>
+            </div>
             <button
               type="button"
               onClick={addBand}

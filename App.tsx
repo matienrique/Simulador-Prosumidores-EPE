@@ -1,15 +1,16 @@
 
 
 import React, { useState } from 'react';
+import { LOGO_PROSUMIDORES, LOGO_SANTAFE } from './assets';
 import { UserType, ProsumidorMode, ProsumidorData, ProsumidorGDData, NoProsumidorData, NoProsumidorCategory, CalculationResult } from './types';
 import StepUserType from './components/StepUserType';
 import StepProsumidorModeSelect from './components/StepProsumidorModeSelect';
 import StepProsumidorForm from './components/StepProsumidorForm';
 import StepProsumidorGDForm from './components/StepProsumidorGDForm';
 import StepNoProsumidorForm from './components/StepNoProsumidorForm';
-import StepResults from './components/StepResults';
+import StepResults from './components/StepResults_v2';
 import StepEpeNoProsumidorSelect from './components/StepEpeNoProsumidorSelect';
-import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD } from './utils/calc';
+import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD } from './utils/calc_v2';
 
 const initialBand = { id: '1', name: 'Última Banda', energy: 0, amount: 0 };
 
@@ -38,7 +39,8 @@ const initialProsumidorGDData: ProsumidorGDData = {
   subtotalConsumoEnergia: 0, subtotalGeneral: 0, totalPagar: 0,
   entPico: 0, entResto: 0, entValle: 0,
   recPico: 0, recResto: 0, recValle: 0,
-  genPico: 0, genResto: 0, genValle: 0
+  genPico: 0, genResto: 0, genValle: 0,
+  precioUnitarioPico: 0, precioUnitarioResto: 0, precioUnitarioValle: 0
 };
 
 const initialNoProsumidorData: NoProsumidorData = {
@@ -113,23 +115,25 @@ const App: React.FC = () => {
     type && [UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL, UserType.EPE_NO_PROSUMIDOR_COMERCIAL, UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL, UserType.EPE_NO_PROSUMIDOR_GD].includes(type);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-200 text-gray-800 pb-20 font-sans">
-      <header className="bg-white shadow-md sticky top-0 z-20 border-b-4 border-violet-600 no-print">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-row items-center justify-between">
-          <div className="w-32 md:w-40 h-14 md:h-16 flex items-center justify-start">
-             <img src="/logo_santafe_provincia.png" alt="Santa Fe" className="max-h-full object-contain" />
-          </div>
-          <div className="flex flex-col items-center flex-grow px-2 hidden sm:flex">
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-fuchsia-600 text-center">
-              Calculadora Prosumidores EPE
-            </h1>
-            <div className="mt-1 text-xs font-semibold text-orange-600 bg-orange-50 px-3 py-0.5 rounded-full border border-orange-100">
-              {step === 1 ? 'Paso 1: Selección' : step === 2 ? 'Paso 2: Datos' : 'Paso 3: Resultados'}
+    <div className="min-h-screen bg-white text-gray-800 pb-20 font-sans">
+      <header className="bg-epe-gradient shadow-lg sticky top-0 z-20 border-b border-white/20 no-print">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col items-center justify-center">
+          <div className="flex flex-row items-center justify-center gap-4 md:gap-8 w-full">
+            <div className="h-10 md:h-14 flex items-center justify-center">
+               <img src={LOGO_PROSUMIDORES} alt="Prosumidores" className="max-h-full object-contain brightness-0 invert" />
             </div>
-          </div>
-          <div className="w-32 md:w-40 h-14 md:h-16 flex items-center justify-end">
-            <div className="bg-slate-900 rounded-lg px-3 py-1 h-full flex items-center justify-center">
-               <img src="/logo_prosumidores.png" alt="Prosumidores" className="max-h-full object-contain" />
+            
+            <div className="flex flex-col items-center">
+              <h1 className="text-xl md:text-3xl font-black tracking-tight text-white text-center drop-shadow-md">
+                Calculadora Prosumidores EPE
+              </h1>
+              <div className="mt-2 text-xs font-bold text-white bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full border border-white/30">
+                {step === 1 ? 'Paso 1: Selección' : step === 2 ? 'Paso 2: Datos' : 'Paso 3: Resultados'}
+              </div>
+            </div>
+
+            <div className="h-14 md:h-20 flex items-center justify-center">
+               <img src={LOGO_SANTAFE} alt="Santa Fe" className="max-h-full object-contain brightness-0 invert" />
             </div>
           </div>
         </div>

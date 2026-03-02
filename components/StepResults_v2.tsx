@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, UserType } from '../types';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/format';
-import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import Footer from './Footer';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -97,7 +97,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
     <div className="flex flex-col min-h-full">
       <div id="results-content" className="animate-fade-in space-y-8 flex-grow p-4">
         <div className="flex justify-between items-center border-b border-gray-200 pb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Resultados del Análisis EPE {isGD ? '(Usuario Gran Demanda)' : ''}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Resultados del Análisis EPE {isGD ? '(Gran Demanda)' : ''}</h2>
           <button 
             onClick={handleDownloadPDF} 
             disabled={isGenerating}
@@ -106,6 +106,61 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
             <Download size={18} /><span>{isGenerating ? 'Generando...' : 'Guardar PDF'}</span>
           </button>
         </div>
+
+        {!isProsumidor && (
+          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 mb-6 text-center">
+            <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Potencia máxima de instalación</h3>
+            <p className="text-3xl font-extrabold text-gray-900">
+              {formatNumber(isGD ? (results.details?.["Generación Promedio (kWh)"] as number || 0) : (results.details?.["Potencia Estimada (kW)"] as number || 0), 2)}
+              <span className="text-lg text-gray-400 ml-2 font-bold">{isGD ? 'kWh' : 'kW'}</span>
+            </p>
+          </div>
+        )}
+
+        {isGD && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700 font-medium">
+                  Si el suministro se encuentra en la ciudad de Rosario, el cálculo de los impuestos puede presentar una leve variación de aproximadamente 2% en virtud de determinadas ordenanzas municipales que resultan de aplicación en dicha jurisdicción.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {userType === UserType.EPE_NO_PROSUMIDOR_GD && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700 font-medium">
+                  Los reconocimientos resultan aplicables únicamente en caso de contar con Certificado MiPyME vigente
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r shadow-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700 font-medium">
+                  Si el usuario no corresponde a la categoría N1 del régimen de segmentación de subsidios de la EPE, los subsidios aplicados por el Gobierno Nacional resultan significativamente menores; en consecuencia, los ahorros estimados podrían encontrarse sobrevalorados respecto de los reales
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside">
           <div className={`p-6 rounded-2xl shadow-md border-t-4 ${isProsumidor ? 'bg-violet-50 border-violet-500' : 'bg-orange-50 border-orange-500'}`}>

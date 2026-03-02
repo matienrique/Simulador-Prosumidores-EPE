@@ -123,6 +123,9 @@ export interface ProsumidorGDData {
   genPico: number;
   genResto: number;
   genValle: number;
+  precioUnitarioPico: number;
+  precioUnitarioResto: number;
+  precioUnitarioValle: number;
 }
 
 export interface NoProsumidorData {
