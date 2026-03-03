@@ -66,7 +66,6 @@ const InteractivePieChart: React.FC<{ data: PieData[] }> = ({ data }) => {
 
 const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
   
@@ -219,32 +218,6 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Energía Generada</p><p className="text-3xl font-bold">{formatNumber(results.details?.["Energía Generada Total (kWh)"] as number || results.details?.["Generación Estimada (kWh)"] as number || results.details?.["Energía Generada (kWh)"] as number || ((results.details?.["Generada Pico (kWh)"] as number || 0) + (results.details?.["Generada Resto (kWh)"] as number || 0) + (results.details?.["Generada Valle (kWh)"] as number || 0)), 1)} <span className="text-lg font-medium">kWh</span></p></div>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">CO₂ Evitado</p><p className="text-3xl font-bold">{formatNumber(results.co2Avoided, 2)} <span className="text-lg font-medium">kg</span></p></div>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Árboles Equiv.</p><div className="flex items-center justify-center gap-2"><Trees className="w-8 h-8 text-emerald-300" /><p className="text-3xl font-bold">{results.treesEquivalent}</p></div></div>
-          </div>
-        </div>
-
-        <div className="print-break-inside bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          <button 
-            onClick={() => setShowDetails(!showDetails)}
-            className="no-print w-full flex items-center justify-between bg-gray-50 px-6 py-4 border-b border-gray-200 hover:bg-gray-100 transition-colors"
-          >
-            <h3 className="font-bold text-gray-700 flex items-center gap-2">
-              <ChevronDown className={`transform transition-transform ${showDetails ? 'rotate-180' : ''}`} />
-              Detalle de Cálculos
-            </h3>
-            <span className="text-xs text-gray-400 font-medium">{showDetails ? 'Ocultar' : 'Ver más'}</span>
-          </button>
-          
-          <div className={`${showDetails ? 'block' : 'hidden'} print:block p-6 bg-white`}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-              {Object.entries(results.details || {}).map(([key, value]) => (
-                <div key={key} className="flex justify-between items-center border-b border-gray-50 py-2">
-                  <span className="text-sm text-gray-500">{key}</span>
-                  <span className="text-sm font-bold text-gray-800">
-                    {typeof value === 'number' ? (key.includes('($)') || key.includes('Factura') || key.includes('Importe') || key.includes('Subtotal') || key.includes('Ahorro') || key.includes('Impuestos') || key.includes('Reconocimiento') || key.includes('Base Imponible') ? formatCurrency(value) : formatNumber(value, 2)) : value}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
