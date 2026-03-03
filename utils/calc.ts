@@ -19,7 +19,7 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
   let percepcion = 0;
   
   if (taxStatus === TaxStatus.RESPONSABLE_INSCRIPTO) {
-    ivaCorrespondiente = 0.27;
+    ivaCorrespondiente = 0.3;
   } else if (taxStatus === TaxStatus.CONSUMIDOR_FINAL) {
     ivaCorrespondiente = 0.21;
   } else if (taxStatus === TaxStatus.MONOTRIBUTO) {
@@ -409,7 +409,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   let IVA_correspondiente = 0.21;
   let Percepcion_correspondiente = 0;
   switch (taxStatus) {
-    case TaxStatus.RESPONSABLE_INSCRIPTO: IVA_correspondiente = 0.27; break;
+    case TaxStatus.RESPONSABLE_INSCRIPTO: IVA_correspondiente = 0.3; break;
     case TaxStatus.CONSUMIDOR_FINAL: IVA_correspondiente = 0.21; break;
     case TaxStatus.MONOTRIBUTO: IVA_correspondiente = 0.27; break;
     case TaxStatus.SUJETO_NO_CATEGORIZADO: IVA_correspondiente = 0.27; Percepcion_correspondiente = 0.135; break;

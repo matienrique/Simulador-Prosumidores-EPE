@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { NoProsumidorData, Band, NoProsumidorCategory, NoProsumidorGDInput, ConsumptionRow, TaxStatus } from '../types';
 import { Plus, Trash2, Info, Factory, Calendar, AlertCircle, Construction } from 'lucide-react';
 import { formatPercent, formatCurrency } from '../utils/format';
+import { CALCULATOR_CONSTANTS } from '../utils/calc_v2';
 import Footer from './Footer';
 
 interface Props {
@@ -109,12 +110,6 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
   };
 
   // --- STANDARD FORM HANDLERS ---
-  const CONSTANTS = {
-    [NoProsumidorCategory.RESIDENCIAL]: { autoconsumo: 0.40, recon: 109.91, gsf: 20.93 },
-    [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, recon: 98.43, gsf: 34.93 },
-    [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, recon: 98.43, gsf: 34.93 },
-    [NoProsumidorCategory.GRAN_DEMANDA]: { autoconsumo: 0.80, recon: 98.43, gsf: 34.93 },
-  };
 
   const handleChange = (field: keyof NoProsumidorData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -154,7 +149,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
   // --- RESIDENCIAL SPECIFIC HANDLERS ---
   const getTaxInfoResidencial = (status: string) => {
     switch (status) {
-      case TaxStatus.RESPONSABLE_INSCRIPTO: return "IVA aplicable: 27% | Percepción: 0%";
+      case TaxStatus.RESPONSABLE_INSCRIPTO: return "IVA aplicable: 27% | Percepción: 3%";
       case TaxStatus.CONSUMIDOR_FINAL: return "IVA aplicable: 21% | Percepción: 0%";
       case TaxStatus.MONOTRIBUTO: return "IVA aplicable: 27% | Percepción: 0%";
       case TaxStatus.SUJETO_NO_CATEGORIZADO: return "IVA aplicable: 27% | Percepción: 13,5%";
@@ -166,7 +161,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
   // --- COMERCIAL SPECIFIC HANDLERS ---
   const getTaxInfoComercial = (status: string) => {
     switch (status) {
-      case TaxStatus.RESPONSABLE_INSCRIPTO: return "IVA aplicable: 27% | Percepción: 0%";
+      case TaxStatus.RESPONSABLE_INSCRIPTO: return "IVA aplicable: 27% | Percepción: 3%";
       case TaxStatus.CONSUMIDOR_FINAL: return "IVA aplicable: 21% | Percepción: 0%";
       case TaxStatus.MONOTRIBUTO: return "IVA aplicable: 27% | Percepción: 0%";
       case TaxStatus.SUJETO_NO_CATEGORIZADO: return "IVA aplicable: 27% | Percepción: 13,5%";
@@ -178,7 +173,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
   // --- INDUSTRIAL SPECIFIC HANDLERS ---
   const getTaxInfoIndustrial = (status: string) => {
     switch (status) {
-      case TaxStatus.RESPONSABLE_INSCRIPTO: return "IVA aplicable: 27% | Percepción: 0%";
+      case TaxStatus.RESPONSABLE_INSCRIPTO: return "IVA aplicable: 27% | Percepción: 3%";
       case TaxStatus.CONSUMIDOR_FINAL: return "IVA aplicable: 21% | Percepción: 0%";
       case TaxStatus.MONOTRIBUTO: return "IVA aplicable: 27% | Percepción: 0%";
       case TaxStatus.SUJETO_NO_CATEGORIZADO: return "IVA aplicable: 27% | Percepción: 13,5%";
@@ -240,7 +235,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
     if (!status) return { text: '' };
     switch (status) {
       case TaxStatus.RESPONSABLE_INSCRIPTO:
-        return { text: 'IVA aplicable: 27%' };
+        return { text: 'IVA aplicable: 27% + 3%' };
       case TaxStatus.CONSUMIDOR_FINAL:
         return { text: 'IVA aplicable: 21%' };
       case TaxStatus.MONOTRIBUTO:
@@ -280,15 +275,15 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800">
             <div>
               <span className="block font-semibold">Autoconsumo Estimado</span>
-              {formatPercent(CONSTANTS[formData.category].autoconsumo * 100)}
+              {formatPercent(CALCULATOR_CONSTANTS[formData.category].autoconsumo * 100)}
             </div>
             <div>
               <span className="block font-semibold">Reconocimiento Unit.</span>
-              {formatCurrency(CONSTANTS[formData.category].recon)}
+              {formatCurrency(CALCULATOR_CONSTANTS[formData.category].reconUnit)}
             </div>
             <div>
               <span className="block font-semibold">GSF Unitario</span>
-              {formatCurrency(CONSTANTS[formData.category].gsf)}
+              {formatCurrency(CALCULATOR_CONSTANTS[formData.category].gsfUnit)}
             </div>
           </div>
         )}
@@ -303,15 +298,15 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
               <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
-              <span className="text-lg font-bold">75%</span>
+              <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[NoProsumidorCategory.COMERCIAL].autoconsumo * 100)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Reconocimiento Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(98.43)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.COMERCIAL].reconUnit)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Importe GSF Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(34.93)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.COMERCIAL].gsfUnit)}</span>
             </div>
           </div>
 
@@ -776,15 +771,15 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
               <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
-              <span className="text-lg font-bold">40%</span>
+              <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[NoProsumidorCategory.RESIDENCIAL].autoconsumo * 100)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Reconocimiento Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(109.91)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.RESIDENCIAL].reconUnit)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Importe GSF Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(20.93)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.RESIDENCIAL].gsfUnit)}</span>
             </div>
           </div>
 
@@ -994,15 +989,15 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
               <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
-              <span className="text-lg font-bold">90%</span>
+              <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[NoProsumidorCategory.INDUSTRIAL].autoconsumo * 100)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Reconocimiento Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(98.43)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.INDUSTRIAL].reconUnit)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Importe GSF Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(34.93)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.INDUSTRIAL].gsfUnit)}</span>
             </div>
           </div>
 

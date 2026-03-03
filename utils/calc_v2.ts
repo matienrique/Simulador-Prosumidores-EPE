@@ -1,6 +1,6 @@
 import { CalculationResult, ProsumidorData, NoProsumidorData, NoProsumidorCategory, ProsumidorGDData, TaxStatus, Band } from '../types';
 
-const CONSTANTS = {
+export const CALCULATOR_CONSTANTS = {
   [NoProsumidorCategory.RESIDENCIAL]: { autoconsumo: 0.40, reconUnit: 109.91, gsfUnit: 20.93 },
   [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, reconUnit: 98.43, gsfUnit: 34.93 },
   [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, reconUnit: 98.43, gsfUnit: 34.93 },
@@ -19,7 +19,7 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
   let percepcion = 0;
   
   if (taxStatus === TaxStatus.RESPONSABLE_INSCRIPTO) {
-    ivaCorrespondiente = 0.27;
+    ivaCorrespondiente = 0.3;
   } else if (taxStatus === TaxStatus.CONSUMIDOR_FINAL) {
     ivaCorrespondiente = 0.21;
   } else if (taxStatus === TaxStatus.MONOTRIBUTO) {
@@ -378,7 +378,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   }
 
   const { category, consumptionHistory, totalConsumption, serviceQuota, bands, cap, ley12692, taxStatus, totalBill } = data;
-  const config = CONSTANTS[category];
+  const config = CALCULATOR_CONSTANTS[category];
   const AUTO_CONST = config.autoconsumo;
   const RECON_UNIT = config.reconUnit;
   const GSF_UNIT = config.gsfUnit;
@@ -386,7 +386,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   let IVA_correspondiente = 0.21;
   let Percepcion_correspondiente = 0;
   switch (taxStatus) {
-    case TaxStatus.RESPONSABLE_INSCRIPTO: IVA_correspondiente = 0.27; break;
+    case TaxStatus.RESPONSABLE_INSCRIPTO: IVA_correspondiente = 0.3; break;
     case TaxStatus.CONSUMIDOR_FINAL: IVA_correspondiente = 0.21; break;
     case TaxStatus.MONOTRIBUTO: IVA_correspondiente = 0.27; break;
     case TaxStatus.SUJETO_NO_CATEGORIZADO: IVA_correspondiente = 0.27; Percepcion_correspondiente = 0.135; break;

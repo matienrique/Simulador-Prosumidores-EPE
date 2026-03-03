@@ -79,7 +79,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
     if (!status) return { text: '' };
     switch (status) {
       case TaxStatus.RESPONSABLE_INSCRIPTO:
-        return { text: 'IVA aplicable: 27%' };
+        return { text: 'IVA aplicable: 27% + percepción 3%' };
       case TaxStatus.CONSUMIDOR_FINAL:
         return { text: 'IVA aplicable: 21%' };
       case TaxStatus.MONOTRIBUTO:

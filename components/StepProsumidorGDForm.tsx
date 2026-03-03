@@ -61,7 +61,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
     if (!status) return { text: '' };
     switch (status) {
       case TaxStatus.RESPONSABLE_INSCRIPTO:
-        return { text: 'IVA aplicable: 27% y percepción: 3%' };
+        return { text: 'IVA aplicable: 27% + percepción: 3%' };
       case TaxStatus.RESPONSABLE_INSCRIPTO_AGENTE:
         return { text: 'IVA aplicable: 27%' };
       case TaxStatus.EXENTO:
