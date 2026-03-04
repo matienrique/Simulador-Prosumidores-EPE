@@ -102,6 +102,7 @@ export interface ProsumidorGDData {
   leyGD: number;
   reconGSF_GD: number;
   taxStatus?: TaxStatus;
+  isRosario?: boolean;
   cargoComercial: number;
   cargoCapSumPico: number;
   cargoCapSumFPico: number;

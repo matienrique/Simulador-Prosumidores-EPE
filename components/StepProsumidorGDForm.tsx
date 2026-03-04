@@ -106,6 +106,27 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
         </div>
 
         <div className="mb-2">
+          <div className="mb-4 flex flex-col gap-2 animate-fade-in">
+            <label className="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="checkbox"
+                checked={formData.isRosario || false}
+                onChange={(e) => handleChange('isRosario', e.target.checked)}
+                className="w-5 h-5 text-violet-600 focus:ring-violet-500 border-gray-300 rounded"
+              />
+              <span className="text-gray-700 font-medium">Resido en la ciudad de Rosario</span>
+            </label>
+            
+            {formData.isRosario && (
+              <div className="flex items-start gap-2 bg-blue-50 text-blue-700 p-3 rounded-lg text-sm border border-blue-100">
+                <Info size={16} className="mt-0.5 flex-shrink-0" />
+                <p>
+                  En los impuestos se aplicaran un cargo del 1.8% y 0.60% provenientes de las ordenes municipales 1592/62 y 1618/62 respectivamente
+                </p>
+              </div>
+            )}
+          </div>
+
           <label className={labelStyle}>¿Cuál es tu condición fiscal? <span className="text-red-500">*</span></label>
           <select
             value={formData.taxStatus || ''}

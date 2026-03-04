@@ -202,14 +202,27 @@ export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult
   const eaConsTotalSinPros = (cargoComercial + cargoCapSumPico + cargoCapSumFPico + cargoPotenciaPico) + eaConsPicoSinPros + eaConsRestoSinPros + eaConsValleSinPros;
   const subtotalConsumoEnergiaSinPros = eaConsTotalSinPros - recargoBonifFP; 
   
-  const totalImpuestosSinPros = (subtotalConsumoEnergiaSinPros * (ivaCorrespondiente + 0.06 + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
+  // Rosario Tax Logic
+  const Orden_Mun_1592_62 = data.isRosario ? 0.006 : 0;
+  const Orden_Mun_1618_62 = data.isRosario ? 0.018 : 0;
+  
+  const Imp_ros_sin_gd = subtotalConsumoEnergiaSinPros * (Orden_Mun_1592_62 + Orden_Mun_1618_62);
+
+  let totalImpuestosSinPros = (subtotalConsumoEnergiaSinPros * (ivaCorrespondiente + 0.06 + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
+  totalImpuestosSinPros += Imp_ros_sin_gd;
+
   const subtotalGeneralSinPros = subtotalConsumoEnergiaSinPros + totalImpuestosSinPros;
   const totalPagarSinProsReal = subtotalGeneralSinPros; 
 
   // RECALCULO ESCENARIO CON PROSUMIDOR
   const eaConsTotalConPros = (cargoComercial + cargoCapSumPico + cargoCapSumFPico + cargoPotenciaPico) + eaConsPicoConPros + eaConsRestoConPros + eaConsValleConPros;
   const subtotalConsumoEnergiaConPros = eaConsTotalConPros - recargoBonifFP;
-  const taxesPaidConPros = (subtotalConsumoEnergiaConPros * (ivaCorrespondiente + 0.06 + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
+  
+  const Imp_ros_con_gd = subtotalConsumoEnergiaConPros * (Orden_Mun_1592_62 + Orden_Mun_1618_62);
+
+  let taxesPaidConPros = (subtotalConsumoEnergiaConPros * (ivaCorrespondiente + 0.06 + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
+  taxesPaidConPros += Imp_ros_con_gd;
+
   const totalPagarConPros = subtotalConsumoEnergiaConPros + taxesPaidConPros - reconGSF_GD;
 
   const savingsTax = totalImpuestosSinPros - taxesPaidConPros;
@@ -231,11 +244,12 @@ export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult
   const totalInyectada = recPico + recResto + recValle;
   const totalConsumoReal = totalGen + totalEntregada - totalInyectada;
   const injectionPercent = safeDiv(totalGen, totalConsumoReal) * 100;
+  const totalSinPros = totalPagar + savingsTax + savingsConsumption + savingsRecon
 
   return {
     type: 'GD', 
-    billWithProsumers: totalPagarConPros,
-    billWithoutProsumers: totalPagarSinProsReal,
+    billWithProsumers: totalPagar,
+    billWithoutProsumers: totalSinPros,
     totalSavings: totalSavings,
     totalSavingsPercent: totalSavingsPercent,
     savingsConsumption: savingsConsumption,
@@ -267,6 +281,7 @@ export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult
       "Autoconsumo Calculado (kWh)": autoconsumoKwh,
       "IVA Aplicado": `${(ivaCorrespondiente * 100).toFixed(1)}%`,
       "Percepción Aplicada": `${(percepcionCorrespondiente * 100).toFixed(1)}%`,
+      ...(data.isRosario ? { "Tasa Mun. Rosario (0.6% + 1.8%)": "Aplicada" } : {})
     }
   };
 };

@@ -117,7 +117,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
           </div>
         )}
 
-        {isGD && (
+        {isGD && !isProsumidor && !results.details?.["Tasa Mun. Rosario (0.6% + 1.8%)"] && (
           <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
             <div className="flex items-start">
               <div className="flex-shrink-0">

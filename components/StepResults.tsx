@@ -69,6 +69,8 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
   
+  const [showDetails, setShowDetails] = useState(false);
+
   const handleDownloadPDF = () => {
     setIsGenerating(true);
     const element = document.getElementById('results-content');
@@ -165,6 +167,45 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Árboles Equiv.</p><div className="flex items-center justify-center gap-2"><Trees className="w-8 h-8 text-emerald-300" /><p className="text-3xl font-bold">{results.treesEquivalent}</p></div></div>
           </div>
         </div>
+
+        {results.details && Object.keys(results.details).length > 0 && (
+          <div className="print-break-inside bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <button 
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+            >
+              <h3 className="font-bold text-gray-700">Detalle de Cálculos</h3>
+              {showDetails ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
+            </button>
+            
+            {showDetails && (
+              <div className="p-0 overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50 text-gray-500 uppercase font-bold text-xs">
+                    <tr>
+                      <th className="px-6 py-3">Concepto</th>
+                      <th className="px-6 py-3 text-right">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {Object.entries(results.details).map(([key, value]) => (
+                      <tr key={key} className="hover:bg-gray-50">
+                        <td className="px-6 py-3 font-medium text-gray-700">{key}</td>
+                        <td className="px-6 py-3 text-right text-gray-900 font-mono">
+                          {typeof value === 'number' 
+                            ? (key.includes('kWh') || key.includes('kW') || key.includes('Porcentaje') || key.includes('Factor') || key.includes('Coeficiente') 
+                                ? formatNumber(value, 2) 
+                                : formatCurrency(value))
+                            : value}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="no-print flex flex-col md:flex-row gap-4 justify-between pt-6">
           <button onClick={onReset} className="flex items-center justify-center gap-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg font-bold shadow-sm transition-colors"><RefreshCw size={18} /> Reiniciar</button>
