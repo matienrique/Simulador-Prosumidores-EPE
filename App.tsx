@@ -127,7 +127,7 @@ const App: React.FC = () => {
             
             <div className="flex flex-col items-center">
               <h1 className="text-xl md:text-3xl font-black tracking-tight text-white text-center drop-shadow-md">
-                Calculadora Prosumidores
+                Simulador Prosumidores
               </h1>
               <div className="mt-2 text-xs font-bold text-white bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full border border-white/30">
                 {step === 1 ? 'Paso 1: Selección' : step === 2 ? 'Paso 2: Datos' : 'Paso 3: Resultados'}

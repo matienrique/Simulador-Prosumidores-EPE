@@ -1,10 +1,10 @@
 import { CalculationResult, ProsumidorData, NoProsumidorData, NoProsumidorCategory, ProsumidorGDData, TaxStatus, Band } from '../types';
 
 export const CALCULATOR_CONSTANTS = {
-  [NoProsumidorCategory.RESIDENCIAL]: { autoconsumo: 0.40, reconUnit: 109.91, gsfUnit: 20.93 },
-  [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, reconUnit: 98.43, gsfUnit: 34.93 },
-  [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, reconUnit: 98.43, gsfUnit: 34.93 },
-  [NoProsumidorCategory.GRAN_DEMANDA]: { autoconsumo: 0.80, reconUnit: 98.43, gsfUnit: 34.93 },
+  [NoProsumidorCategory.RESIDENCIAL]: { autoconsumo: 0.40, reconUnit: 127.16976, gsfUnit: 24.27 },
+  [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, reconUnit: 108.79263, gsfUnit: 40.51 },
+  [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, reconUnit: 108.79263, gsfUnit: 40.51 },
+  [NoProsumidorCategory.GRAN_DEMANDA]: { autoconsumo: 0.80, reconUnit: 98.43, gsfUnit: 40.51 },
 };
 
 const safeDiv = (num: number, den: number): number => {
