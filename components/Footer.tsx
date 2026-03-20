@@ -19,6 +19,16 @@ const Footer: React.FC = () => {
               <p className="opacity-90">Ciudad de Santa Fe</p>
             </div>
           </div>
+
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-medium">San Lorenzo 1949. Piso 2. Oficina 228.</p>
+              <p className="opacity-90">Ciudad de Rosario</p>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4 md:text-right">
@@ -28,13 +38,20 @@ const Footer: React.FC = () => {
             </div>
             <p className="font-medium">Cel: (0342) 4505882 <span className="opacity-50 mx-1">|</span> Interno 1303</p>
           </div>
+
+          <div className="flex items-center gap-3 md:justify-end">
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Phone className="w-5 h-5 text-white" />
+            </div>
+            <p className="font-medium">Cel: (0342) 6400825</p>
+          </div>
           
           <div className="flex items-center gap-3 md:justify-end">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Mail className="w-5 h-5 text-white" />
             </div>
-            <a href="mailto:secretariadeenergiasantafe@gmail.com" className="font-bold hover:underline text-white">
-              secretariadeenergiasantafe@gmail.com
+            <a href="mailto:secretariaenergia@santafe.gov.ar" className="font-bold hover:underline text-white">
+              secretariaenergia@santafe.gov.ar
             </a>
           </div>
         </div>
