@@ -25,6 +25,7 @@ const Footer: React.FC = () => {
               <MapPin className="w-5 h-5 text-white" />
             </div>
             <div>
+              <p className="font-medium">Secretaría de Energía </p>
               <p className="font-medium">San Lorenzo 1949. Piso 2. Oficina 228.</p>
               <p className="opacity-90">Ciudad de Rosario</p>
             </div>
