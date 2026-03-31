@@ -155,7 +155,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
           <div className="flex justify-between items-start mb-2">
             <div>
               <h4 className="text-md font-medium text-gray-700">Bandas de Consumo</h4>
-              <p className="text-xs text-gray-500 mt-1">el usuario debe completar la cantidad de bandas según lo informado en la factura y los kWh consumidos</p>
+              <p className="text-xs text-gray-500 mt-1">El usuario debe completar la cantidad de bandas (kWh) según lo informado en la factura y el importe total facturado correspondiente a cada una.</p>
             </div>
             <button
               type="button"
@@ -193,7 +193,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
                       <div>
                         <input
                           type="number"
-                          placeholder="Importe ($)"
+                          placeholder="Importe facturado ($)"
                           min="0"
                           step="0.01"
                           value={band.amount || ''}
