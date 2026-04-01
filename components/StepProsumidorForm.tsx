@@ -140,7 +140,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
         <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Detalle de Facturación</h3>
         
         <div className="mb-6">
-          <label className={labelStyle}>Cuota de servicio (importe final en pesos)</label>
+          <label className={labelStyle}>Cuota de servicio (Importe final en pesos)</label>
           <input
             type="number"
             min="0"
@@ -179,6 +179,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
+                        <label className={labelStyle}>Energía correspondiente a la banda (kWh)</label>
                         <input
                           type="number"
                           placeholder="Energía (kWh)"
@@ -188,9 +189,9 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
                           onChange={(e) => updateBand(index, 'energy', parseFloat(e.target.value) || 0)}
                           className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"
                         />
-                        <span className="text-[10px] font-bold text-white bg-violet-600 px-1 rounded inline-block mt-1">Energía correspondiente a la banda (kW)</span>
                       </div>
                       <div>
+                        <label className={labelStyle}>Importe correspondiente a la banda</label>
                         <input
                           type="number"
                           placeholder="Importe facturado ($)"
@@ -200,7 +201,6 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
                           onChange={(e) => updateBand(index, 'amount', parseFloat(e.target.value) || 0)}
                           className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none text-right"
                         />
-                        <span className="text-[10px] font-bold text-white bg-violet-600 px-1 rounded inline-block mt-1">Importe correspondiente a la banda</span>
                       </div>
                     </div>
                   </div>
