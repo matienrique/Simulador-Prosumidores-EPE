@@ -6,7 +6,7 @@ import Footer from './Footer';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 import { db, auth } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 enum OperationType {
   CREATE = 'create',
@@ -131,6 +131,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
     if (!feedback.choice && !feedback.comments) return;
     
     let userTypeLabel = '';
+    // ... (lógica de etiquetas existente)
     if (userType === UserType.PROSUMIDOR) {
       userTypeLabel = results.type === 'GD' ? 'Prosumidor (Gran Demanda)' : 'Prosumidor (Pequeña Demanda)';
     } else if (userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL) {
@@ -165,14 +166,19 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
     try {
       const path = 'feedback';
       await addDoc(collection(db, path), {
-        ...feedback,
+        choice: feedback.choice,
+        observation: feedback.comments,
         userType,
         userTypeLabel,
-        timestamp: new Date().toISOString()
+        totalEpe: results.billWithoutProsumers,
+        totalProsumidor: results.billWithProsumers,
+        savings: results.totalSavings,
+        timestamp: serverTimestamp(),
+        uid: auth.currentUser?.uid || 'anonymous'
       });
+      
       setSubmitted(true);
     } catch (error) {
-      console.error('Error submitting feedback:', error);
       handleFirestoreError(error, OperationType.CREATE, 'feedback');
     } finally {
       setIsSubmitting(false);

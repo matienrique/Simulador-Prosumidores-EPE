@@ -8,11 +8,15 @@ service cloud.firestore {
     // Collection: feedback
     // Document ID: auto-generated
     // Fields:
-    //   - choice: string ('yes' or 'no') - required
-    //   - comments: string - optional
-    //   - userType: string - required
-    //   - userTypeLabel: string - required
-    //   - timestamp: string (ISO 8601) - required
+    //   - choice: string (optional, 'yes'|'no'|null)
+    //   - observation: string (optional, max 1000 chars)
+    //   - userType: string (required)
+    //   - userTypeLabel: string (optional)
+    //   - totalEpe: number (required)
+    //   - totalProsumidor: number (required)
+    //   - savings: number (required)
+    //   - timestamp: timestamp (required)
+    //   - uid: string (required)
     //
     // ===============================================================
 
@@ -23,40 +27,52 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function isAdmin() {
       return isAuthenticated() &&
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
           (request.auth.token.email == "matienrique27@gmail.com" && request.auth.token.email_verified == true));
     }
-    
-    function isValidFeedback(data) {
-      return data.keys().hasAll(['choice', 'userType', 'userTypeLabel', 'timestamp']) &&
-             data.choice in ['yes', 'no'] &&
-             data.userType is string &&
-             data.userTypeLabel is string &&
-             data.timestamp is string &&
-             (!('comments' in data) || (data.comments is string && data.comments.size() < 2000));
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
     }
 
     // ===============================================================
-    // Rules
+    // Domain Validators
     // ===============================================================
+
+    function isValidFeedback(data) {
+      return hasRequiredFields(['userType', 'totalEpe', 'totalProsumidor', 'savings', 'timestamp', 'uid']) &&
+             hasOnlyAllowedFields(['choice', 'observation', 'userType', 'userTypeLabel', 'totalEpe', 'totalProsumidor', 'savings', 'timestamp', 'uid']) &&
+             (data.choice == null || data.choice in ['yes', 'no']) &&
+             (!('observation' in data) || (data.observation is string && data.observation.size() <= 1000)) &&
+             data.userType is string &&
+             data.totalEpe is number &&
+             data.totalProsumidor is number &&
+             data.savings is number &&
+             data.timestamp is timestamp &&
+             data.uid is string;
+    }
 
     match /feedback/{feedbackId} {
-      // Anyone can submit feedback, but it must be valid
-      allow create: if isValidFeedback(request.resource.data);
+      // Allow anyone authenticated (including anonymous) to create feedback
+      allow create: if isAuthenticated() && isValidFeedback(request.resource.data) && request.resource.data.uid == request.auth.uid;
       
-      // Only admins can read, update, or delete feedback
-      allow read, update, delete: if isAdmin();
+      // Only admins can read all feedback
+      allow read: if isAdmin();
+      
+      // No updates or deletes allowed for now to maintain integrity
+      allow update, delete: if isAdmin();
     }
-    
+
     match /users/{userId} {
-      // Only the user can read their own profile, admins can read all
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      
-      // Only admins can create/update user roles
-      allow create, update: if isAdmin();
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
   }
 }
