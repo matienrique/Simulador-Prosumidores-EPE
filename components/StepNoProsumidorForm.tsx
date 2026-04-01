@@ -441,16 +441,16 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
                             onChange={(e) => updateBand(index, 'energy', parseFloat(e.target.value) || 0)}
                             className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                           />
-                          <span className="text-[10px] text-gray-400">kWh</span>
+                          <span className="text-[10px] font-bold text-white bg-orange-600 px-1 rounded inline-block mt-1">Energía correspondiente a la banda (kW)</span>
                         </div>
                         <div>
                           <input
                             type="number" placeholder="Importe ($)" min="0" step="0.01"
                             value={band.amount || ''}
                             onChange={(e) => updateBand(index, 'amount', parseFloat(e.target.value) || 0)}
-                            className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
+                            className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none text-right"
                           />
-                          <span className="text-[10px] text-gray-400">$ ARS</span>
+                          <span className="text-[10px] font-bold text-white bg-orange-600 px-1 rounded inline-block mt-1">Importe correspondiente a la banda</span>
                         </div>
                       </div>
                     </div>
@@ -918,16 +918,16 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
                             onChange={(e) => updateBand(index, 'energy', parseFloat(e.target.value) || 0)}
                             className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                           />
-                          <span className="text-[10px] text-gray-400">kWh</span>
+                          <span className="text-[10px] font-bold text-white bg-orange-600 px-1 rounded inline-block mt-1">Energía correspondiente a la banda (kW)</span>
                         </div>
                         <div>
                           <input
                             type="number" placeholder="Importe ($)" min="0" step="0.01"
                             value={band.amount || ''}
                             onChange={(e) => updateBand(index, 'amount', parseFloat(e.target.value) || 0)}
-                            className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
+                            className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none text-right"
                           />
-                          <span className="text-[10px] text-gray-400">$ ARS</span>
+                          <span className="text-[10px] font-bold text-white bg-orange-600 px-1 rounded inline-block mt-1">Importe correspondiente a la banda</span>
                         </div>
                       </div>
                     </div>
@@ -1136,16 +1136,16 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
                             onChange={(e) => updateBand(index, 'energy', parseFloat(e.target.value) || 0)}
                             className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                           />
-                          <span className="text-[10px] text-gray-400">kWh</span>
+                          <span className="text-[10px] font-bold text-white bg-orange-600 px-1 rounded inline-block mt-1">Energía correspondiente a la banda (kW)</span>
                         </div>
                         <div>
                           <input
                             type="number" placeholder="Importe ($)" min="0" step="0.01"
                             value={band.amount || ''}
                             onChange={(e) => updateBand(index, 'amount', parseFloat(e.target.value) || 0)}
-                            className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
+                            className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none text-right"
                           />
-                          <span className="text-[10px] text-gray-400">$ ARS</span>
+                          <span className="text-[10px] font-bold text-white bg-orange-600 px-1 rounded inline-block mt-1">Importe correspondiente a la banda</span>
                         </div>
                       </div>
                     </div>
