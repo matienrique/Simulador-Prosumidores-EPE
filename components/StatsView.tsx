@@ -1,66 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Check, X, Lock, Users, MessageSquare } from 'lucide-react';
 import { UserType } from '../types';
-import { db, auth } from '../firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId: string | undefined;
-    email: string | null | undefined;
-    emailVerified: boolean | undefined;
-    isAnonymous: boolean | undefined;
-    tenantId: string | null | undefined;
-    providerInfo: {
-      providerId: string;
-      displayName: string | null;
-      email: string | null;
-      photoUrl: string | null;
-    }[];
-  }
-}
-
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
-        providerId: provider.providerId,
-        displayName: provider.displayName,
-        email: provider.email,
-        photoUrl: provider.photoURL
-      })) || []
-    },
-    operationType,
-    path
-  }
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
-}
 
 interface FeedbackEntry {
   choice: 'yes' | 'no' | null;
-  observation: string;
+  comments: string;
   userType: UserType;
   userTypeLabel?: string;
-  timestamp: any;
+  timestamp: string;
 }
 
 interface Props {
@@ -72,23 +19,23 @@ const StatsView: React.FC<Props> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const path = 'feedback';
-    const q = query(collection(db, path), orderBy('timestamp', 'desc'));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const feedbackData = snapshot.docs.map(doc => ({
-        ...doc.data()
-      })) as FeedbackEntry[];
-      setData(feedbackData);
-      setLoading(false);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.LIST, path);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/feedback');
+      if (!response.ok) throw new Error('Error al obtener datos');
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
       setError('No se pudieron cargar las estadísticas.');
+      console.error(err);
+    } finally {
       setLoading(false);
-    });
+    }
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const resolvedCount = data.filter(d => d.choice === 'yes').length;
@@ -108,7 +55,7 @@ const StatsView: React.FC<Props> = ({ onBack }) => {
         </div>
         <div className="flex gap-3">
           <button 
-            onClick={() => window.location.reload()}
+            onClick={fetchData}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-bold shadow-sm"
           >
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
@@ -155,8 +102,8 @@ const StatsView: React.FC<Props> = ({ onBack }) => {
                   <tr key={index} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-gray-400">#{index + 1}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {entry.timestamp?.toDate ? entry.timestamp.toDate().toLocaleDateString('es-AR') : 'N/A'}
-                      <span className="block text-[10px] text-gray-400">{entry.timestamp?.toDate ? entry.timestamp.toDate().toLocaleTimeString('es-AR') : ''}</span>
+                      {new Date(entry.timestamp).toLocaleDateString('es-AR')}
+                      <span className="block text-[10px] text-gray-400">{new Date(entry.timestamp).toLocaleTimeString('es-AR')}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold border border-slate-200">
@@ -177,8 +124,8 @@ const StatsView: React.FC<Props> = ({ onBack }) => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-700 max-w-xs truncate hover:whitespace-normal transition-all cursor-help" title={entry.observation || 'Sin comentarios'}>
-                        {entry.observation || <span className="text-gray-300 italic">Sin comentarios</span>}
+                      <p className="text-sm text-gray-700 max-w-xs truncate hover:whitespace-normal transition-all cursor-help" title={entry.comments || 'Sin comentarios'}>
+                        {entry.comments || <span className="text-gray-300 italic">Sin comentarios</span>}
                       </p>
                     </td>
                   </tr>
