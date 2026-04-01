@@ -3,37 +3,46 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(cors());
-  app.use(express.json());
+  app.use(bodyParser.json());
 
   // Feedback API endpoint
   app.post('/api/feedback', (req, res) => {
     try {
       const feedback = req.body;
-      if (!feedback || Object.keys(feedback).length === 0) {
-        return res.status(400).json({ error: 'Cuerpo de solicitud vacío' });
-      }
+      console.log('Received feedback request:', JSON.stringify(feedback, null, 2));
 
-      const feedbackPath = path.resolve(process.cwd(), 'feedback.json');
+      const feedbackPath = path.join(process.cwd(), 'feedback.json');
+      console.log('Feedback file path:', feedbackPath);
       
       let currentFeedback = [];
       if (fs.existsSync(feedbackPath)) {
-        const data = fs.readFileSync(feedbackPath, 'utf8');
-        currentFeedback = data ? JSON.parse(data) : [];
+        try {
+          const data = fs.readFileSync(feedbackPath, 'utf8');
+          currentFeedback = JSON.parse(data);
+          console.log(`Loaded ${currentFeedback.length} existing feedback entries.`);
+        } catch (e) {
+          console.error('Error reading/parsing feedback file:', e);
+          // If it's corrupted, we'll start fresh or keep empty
+        }
+      } else {
+        console.log('Feedback file does not exist, creating new one.');
       }
 
       currentFeedback.push(feedback);
+
       fs.writeFileSync(feedbackPath, JSON.stringify(currentFeedback, null, 2));
-      
-      res.status(200).json({ success: true });
+      console.log('Feedback saved successfully.');
+      res.status(200).json({ message: 'Feedback saved successfully' });
     } catch (e) {
-      console.error('Error en /api/feedback:', e);
-      res.status(500).json({ error: 'Error interno al guardar feedback' });
+      console.error('CRITICAL: Error in /api/feedback:', e);
+      res.status(500).json({ error: 'Failed to save feedback', details: e instanceof Error ? e.message : String(e) });
     }
   });
 
@@ -63,7 +72,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

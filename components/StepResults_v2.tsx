@@ -5,59 +5,6 @@ import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, Pie
 import Footer from './Footer';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
-import { db, auth } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId: string | undefined;
-    email: string | null | undefined;
-    emailVerified: boolean | undefined;
-    isAnonymous: boolean | undefined;
-    tenantId: string | null | undefined;
-    providerInfo: {
-      providerId: string;
-      displayName: string | null;
-      email: string | null;
-      photoUrl: string | null;
-    }[];
-  }
-}
-
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
-        providerId: provider.providerId,
-        displayName: provider.displayName,
-        email: provider.email,
-        photoUrl: provider.photoURL
-      })) || []
-    },
-    operationType,
-    path
-  }
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
-}
 
 interface Props {
   results: CalculationResult;
@@ -122,6 +69,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
   const [feedback, setFeedback] = useState<{ choice: 'yes' | 'no' | null, comments: string }>({ choice: null, comments: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
@@ -130,56 +78,53 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
   const handleFeedbackSubmit = async () => {
     if (!feedback.choice && !feedback.comments) return;
     
-    let userTypeLabel = '';
-    // ... (lógica de etiquetas existente)
-    if (userType === UserType.PROSUMIDOR) {
-      userTypeLabel = results.type === 'GD' ? 'Prosumidor (Gran Demanda)' : 'Prosumidor (Pequeña Demanda)';
-    } else if (userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL) {
-      userTypeLabel = 'No Prosumidor (Residencial)';
-    } else if (userType === UserType.EPE_NO_PROSUMIDOR_COMERCIAL) {
-      userTypeLabel = 'No Prosumidor (Comercial)';
-    } else if (userType === UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL) {
-      userTypeLabel = 'No Prosumidor (Industrial)';
-    } else if (userType === UserType.EPE_NO_PROSUMIDOR_GD) {
-      userTypeLabel = 'No Prosumidor (Gran Demanda)';
-    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_RESIDENCIAL) {
-      userTypeLabel = 'Cooperativa Prosumidor (Residencial)';
-    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_COMERCIAL) {
-      userTypeLabel = 'Cooperativa Prosumidor (Comercial)';
-    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_INDUSTRIAL) {
-      userTypeLabel = 'Cooperativa Prosumidor (Industrial)';
-    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_GD) {
-      userTypeLabel = 'Cooperativa Prosumidor (Gran Demanda)';
-    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_RESIDENCIAL) {
-      userTypeLabel = 'Cooperativa No Prosumidor (Residencial)';
-    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_COMERCIAL) {
-      userTypeLabel = 'Cooperativa No Prosumidor (Comercial)';
-    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_INDUSTRIAL) {
-      userTypeLabel = 'Cooperativa No Prosumidor (Industrial)';
-    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_GD) {
-      userTypeLabel = 'Cooperativa No Prosumidor (Gran Demanda)';
-    } else {
-      userTypeLabel = userType;
-    }
+    const userTypeLabels: Record<string, string> = {
+      [UserType.PROSUMIDOR]: results.type === 'GD' ? 'Prosumidor (Gran Demanda)' : 'Prosumidor (Pequeña Demanda)',
+      [UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL]: 'No Prosumidor (Residencial)',
+      [UserType.EPE_NO_PROSUMIDOR_COMERCIAL]: 'No Prosumidor (Comercial)',
+      [UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL]: 'No Prosumidor (Industrial)',
+      [UserType.EPE_NO_PROSUMIDOR_GD]: 'No Prosumidor (Gran Demanda)',
+      [UserType.COOPERATIVA_PROSUMIDOR_RESIDENCIAL]: 'Cooperativa Prosumidor (Residencial)',
+      [UserType.COOPERATIVA_PROSUMIDOR_COMERCIAL]: 'Cooperativa Prosumidor (Comercial)',
+      [UserType.COOPERATIVA_PROSUMIDOR_INDUSTRIAL]: 'Cooperativa Prosumidor (Industrial)',
+      [UserType.COOPERATIVA_PROSUMIDOR_GD]: 'Cooperativa Prosumidor (Gran Demanda)',
+      [UserType.COOPERATIVA_NO_PROSUMIDOR_RESIDENCIAL]: 'Cooperativa No Prosumidor (Residencial)',
+      [UserType.COOPERATIVA_NO_PROSUMIDOR_COMERCIAL]: 'Cooperativa No Prosumidor (Comercial)',
+      [UserType.COOPERATIVA_NO_PROSUMIDOR_INDUSTRIAL]: 'Cooperativa No Prosumidor (Industrial)',
+      [UserType.COOPERATIVA_NO_PROSUMIDOR_GD]: 'Cooperativa No Prosumidor (Gran Demanda)',
+    };
+    const userTypeLabel = userTypeLabels[userType] || userType;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
-      const path = 'feedback';
-      await addDoc(collection(db, path), {
-        choice: feedback.choice,
-        observation: feedback.comments,
+      console.log('Submitting feedback:', {
+        ...feedback,
         userType,
         userTypeLabel,
-        totalEpe: results.billWithoutProsumers,
-        totalProsumidor: results.billWithProsumers,
-        savings: results.totalSavings,
-        timestamp: serverTimestamp(),
-        uid: auth.currentUser?.uid || 'anonymous'
+        timestamp: new Date().toISOString()
+      });
+
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...feedback,
+          userType,
+          userTypeLabel,
+          timestamp: new Date().toISOString()
+        })
       });
       
-      setSubmitted(true);
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setSubmitError(errorData.error || 'Error al enviar el feedback. Por favor, intente nuevamente.');
+      }
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'feedback');
+      console.error('Error submitting feedback:', error);
+      setSubmitError('Error de red al enviar el feedback. Verifique su conexión.');
     } finally {
       setIsSubmitting(false);
     }
@@ -396,7 +341,13 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
                   />
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end items-center gap-4">
+                  {submitError && (
+                    <p className="text-red-500 text-sm font-bold animate-shake flex items-center gap-1">
+                      <AlertCircle size={16} />
+                      {submitError}
+                    </p>
+                  )}
                   <button
                     onClick={handleFeedbackSubmit}
                     disabled={isSubmitting || (!feedback.choice && !feedback.comments)}
