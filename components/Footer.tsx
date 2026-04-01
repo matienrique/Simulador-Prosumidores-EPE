@@ -1,11 +1,7 @@
 import React from 'react';
-import { Phone, Mail, MapPin, Lock } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
 
-interface Props {
-  onStatsClick?: () => void;
-}
-
-const Footer: React.FC<Props> = ({ onStatsClick }) => {
+const Footer: React.FC = () => {
   return (
     <footer className="mt-12 bg-epe-gradient py-10 no-print text-white shadow-inner border-t border-white/20">
       <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
@@ -62,21 +58,8 @@ const Footer: React.FC<Props> = ({ onStatsClick }) => {
         </div>
 
       </div>
-      
-      <div className="max-w-5xl mx-auto px-6 mt-10 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="text-xs opacity-70">
-          &copy; {new Date().getFullYear()} Gobierno de Santa Fe
-        </div>
-        
-        {onStatsClick && (
-          <button 
-            onClick={onStatsClick}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-xs font-black uppercase tracking-widest border border-white/10 backdrop-blur-sm"
-          >
-            <Lock size={14} />
-            Estadísticas
-          </button>
-        )}
+      <div className="text-center mt-10 pt-6 border-t border-white/10 text-xs opacity-70">
+        &copy; {new Date().getFullYear()} Gobierno de Santa Fe
       </div>
     </footer>
   );
