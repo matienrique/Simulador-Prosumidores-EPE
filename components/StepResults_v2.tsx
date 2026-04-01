@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, UserType } from '../types';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/format';
-import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp, Info, Check, X, Send } from 'lucide-react';
 import Footer from './Footer';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -66,8 +66,70 @@ const InteractivePieChart: React.FC<{ data: PieData[] }> = ({ data }) => {
 
 const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [feedback, setFeedback] = useState<{ choice: 'yes' | 'no' | null, comments: string }>({ choice: null, comments: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
+  const isSmallDemand = results.type === 'STANDARD';
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedback.choice && !feedback.comments) return;
+    
+    let userTypeLabel = '';
+    if (userType === UserType.PROSUMIDOR) {
+      userTypeLabel = results.type === 'GD' ? 'Prosumidor (Gran Demanda)' : 'Prosumidor (Pequeña Demanda)';
+    } else if (userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL) {
+      userTypeLabel = 'No Prosumidor (Residencial)';
+    } else if (userType === UserType.EPE_NO_PROSUMIDOR_COMERCIAL) {
+      userTypeLabel = 'No Prosumidor (Comercial)';
+    } else if (userType === UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL) {
+      userTypeLabel = 'No Prosumidor (Industrial)';
+    } else if (userType === UserType.EPE_NO_PROSUMIDOR_GD) {
+      userTypeLabel = 'No Prosumidor (Gran Demanda)';
+    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_RESIDENCIAL) {
+      userTypeLabel = 'Cooperativa Prosumidor (Residencial)';
+    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_COMERCIAL) {
+      userTypeLabel = 'Cooperativa Prosumidor (Comercial)';
+    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_INDUSTRIAL) {
+      userTypeLabel = 'Cooperativa Prosumidor (Industrial)';
+    } else if (userType === UserType.COOPERATIVA_PROSUMIDOR_GD) {
+      userTypeLabel = 'Cooperativa Prosumidor (Gran Demanda)';
+    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_RESIDENCIAL) {
+      userTypeLabel = 'Cooperativa No Prosumidor (Residencial)';
+    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_COMERCIAL) {
+      userTypeLabel = 'Cooperativa No Prosumidor (Comercial)';
+    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_INDUSTRIAL) {
+      userTypeLabel = 'Cooperativa No Prosumidor (Industrial)';
+    } else if (userType === UserType.COOPERATIVA_NO_PROSUMIDOR_GD) {
+      userTypeLabel = 'Cooperativa No Prosumidor (Gran Demanda)';
+    } else {
+      userTypeLabel = userType;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...feedback,
+          userType,
+          userTypeLabel,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
+      if (response.ok) {
+        setSubmitted(true);
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   const handleDownloadPDF = () => {
     setIsGenerating(true);
@@ -218,6 +280,88 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Energía Generada</p><p className="text-3xl font-bold">{formatNumber(results.details?.["Energía Generada Total (kWh)"] as number || results.details?.["Generación Estimada (kWh)"] as number || results.details?.["Energía Generada (kWh)"] as number || ((results.details?.["Generada Pico (kWh)"] as number || 0) + (results.details?.["Generada Resto (kWh)"] as number || 0) + (results.details?.["Generada Valle (kWh)"] as number || 0)), 1)} <span className="text-lg font-medium">kWh</span></p></div>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">CO₂ Evitado</p><p className="text-3xl font-bold">{formatNumber(results.co2Avoided, 2)} <span className="text-lg font-medium">kg</span></p></div>
             <div className="bg-white/10 p-4 rounded-lg"><p className="text-emerald-300 text-xs font-bold uppercase tracking-widest mb-1">Árboles Equiv.</p><div className="flex items-center justify-center gap-2"><Trees className="w-8 h-8 text-emerald-300" /><p className="text-3xl font-bold">{results.treesEquivalent}</p></div></div>
+          </div>
+        </div>
+
+        <div className="no-print bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mt-8 animate-fade-in">
+          <div className="bg-slate-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="font-bold text-gray-700">¿Obtuvo la respuesta que buscaba?</h3>
+          </div>
+          <div className="p-6">
+            {submitted ? (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Check size={24} />
+                </div>
+                <p className="text-gray-700 font-bold">¡Gracias por su feedback!</p>
+                <p className="text-sm text-gray-500">Sus comentarios nos ayudan a mejorar.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex justify-center gap-8">
+                  <button
+                    onClick={() => setFeedback(prev => ({ ...prev, choice: 'yes' }))}
+                    className={`group flex flex-col items-center gap-2 p-4 rounded-2xl transition-all border-2 ${
+                      feedback.choice === 'yes' 
+                        ? 'bg-green-50 border-green-500 scale-105 shadow-md' 
+                        : 'bg-white border-gray-100 hover:border-green-200 hover:bg-green-50/30'
+                    }`}
+                  >
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+                      feedback.choice === 'yes' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-600 group-hover:scale-110'
+                    }`}>
+                      <Check size={32} strokeWidth={3} />
+                    </div>
+                    <span className={`font-bold ${feedback.choice === 'yes' ? 'text-green-700' : 'text-gray-500'}`}>Si</span>
+                  </button>
+
+                  <button
+                    onClick={() => setFeedback(prev => ({ ...prev, choice: 'no' }))}
+                    className={`group flex flex-col items-center gap-2 p-4 rounded-2xl transition-all border-2 ${
+                      feedback.choice === 'no' 
+                        ? 'bg-red-50 border-red-500 scale-105 shadow-md' 
+                        : 'bg-white border-gray-100 hover:border-red-200 hover:bg-red-50/30'
+                    }`}
+                  >
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+                      feedback.choice === 'no' ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600 group-hover:scale-110'
+                    }`}>
+                      <X size={32} strokeWidth={3} />
+                    </div>
+                    <span className={`font-bold ${feedback.choice === 'no' ? 'text-red-700' : 'text-gray-500'}`}>No</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-gray-700">Observaciones / recomendaciones (Opcional)</label>
+                  <textarea
+                    value={feedback.comments}
+                    onChange={(e) => setFeedback(prev => ({ ...prev, comments: e.target.value }))}
+                    placeholder="Escriba aquí sus comentarios..."
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none min-h-[100px] text-sm transition-all"
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleFeedbackSubmit}
+                    disabled={isSubmitting || (!feedback.choice && !feedback.comments)}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-md ${
+                      isSubmitting || (!feedback.choice && !feedback.comments)
+                        ? 'bg-gray-300 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 hover:shadow-lg transform hover:-translate-y-0.5'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <RefreshCw size={18} className="animate-spin" />
+                    ) : (
+                      <Send size={18} />
+                    )}
+                    <span>Enviar Feedback</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
