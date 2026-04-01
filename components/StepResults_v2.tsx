@@ -5,6 +5,59 @@ import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, Pie
 import Footer from './Footer';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { db, auth } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 interface Props {
   results: CalculationResult;
@@ -78,6 +131,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
     if (!feedback.choice && !feedback.comments) return;
     
     let userTypeLabel = '';
+    // ... (lógica de etiquetas existente)
     if (userType === UserType.PROSUMIDOR) {
       userTypeLabel = results.type === 'GD' ? 'Prosumidor (Gran Demanda)' : 'Prosumidor (Pequeña Demanda)';
     } else if (userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL) {
@@ -110,22 +164,22 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...feedback,
-          userType,
-          userTypeLabel,
-          timestamp: new Date().toISOString()
-        })
+      const path = 'feedback';
+      await addDoc(collection(db, path), {
+        choice: feedback.choice,
+        observation: feedback.comments,
+        userType,
+        userTypeLabel,
+        totalEpe: results.billWithoutProsumers,
+        totalProsumidor: results.billWithProsumers,
+        savings: results.totalSavings,
+        timestamp: serverTimestamp(),
+        uid: auth.currentUser?.uid || 'anonymous'
       });
       
-      if (response.ok) {
-        setSubmitted(true);
-      }
+      setSubmitted(true);
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      handleFirestoreError(error, OperationType.CREATE, 'feedback');
     } finally {
       setIsSubmitting(false);
     }
