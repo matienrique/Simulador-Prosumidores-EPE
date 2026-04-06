@@ -28,7 +28,7 @@ export const incrementVisitCount = async () => {
     await updateDoc(statsRef, { visitCount: data.visitCount + 1 });
   } else {
     await setDoc(statsRef, {
-      visitCount: 1,
+      visitCount: 104,
       resolvedCount: 0,
       notResolvedCount: 0,
       lastConsultationNumber: 0
@@ -59,7 +59,7 @@ export const saveFeedback = async (resolved: boolean, observations: string, user
     resolvedCount = resolved ? 1 : 0;
     notResolvedCount = !resolved ? 1 : 0;
     await setDoc(statsRef, {
-      visitCount: 1,
+      visitCount: 104,
       resolvedCount,
       notResolvedCount,
       lastConsultationNumber: 1
