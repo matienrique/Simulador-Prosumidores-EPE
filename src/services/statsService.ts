@@ -25,10 +25,12 @@ export const incrementVisitCount = async () => {
 
   if (statsSnap.exists()) {
     const data = statsSnap.data() as GlobalStats;
-    await updateDoc(statsRef, { visitCount: data.visitCount + 1 });
+    // Update: If the current count is less than 104, we seed it to 104 as requested.
+    const newCount = Math.max(data.visitCount + 1, 104);
+    await updateDoc(statsRef, { visitCount: newCount });
   } else {
     await setDoc(statsRef, {
-      visitCount: 1,
+      visitCount: 104, // Start at 104 if it doesn't exist
       resolvedCount: 0,
       notResolvedCount: 0,
       lastConsultationNumber: 0
