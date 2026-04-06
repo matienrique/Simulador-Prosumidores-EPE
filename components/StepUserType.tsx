@@ -6,9 +6,10 @@ import Footer from './Footer';
 
 interface Props {
   onSelect: (type: UserType) => void;
+  onShowStats?: () => void;
 }
 
-const StepUserType: React.FC<Props> = ({ onSelect }) => {
+const StepUserType: React.FC<Props> = ({ onSelect, onShowStats }) => {
   return (
     <div className="flex flex-col min-h-full">
       <div className="flex flex-col items-center py-10 flex-grow animate-fade-in">
@@ -56,7 +57,7 @@ const StepUserType: React.FC<Props> = ({ onSelect }) => {
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer onShowStats={onShowStats} />
     </div>
   );
 };

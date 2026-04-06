@@ -10,9 +10,10 @@ interface Props {
   initialData: NoProsumidorData;
   onSubmit: (data: NoProsumidorData) => void;
   onBack: () => void;
+  onShowStats?: () => void;
 }
 
-const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) => {
+const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, onShowStats }) => {
   const [formData, setFormData] = useState<NoProsumidorData>(initialData);
   
   // GD Specific State initialization
@@ -1230,7 +1231,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
         </button>
       </div>
     </form>
-    <Footer />
+    <Footer onShowStats={onShowStats} />
     </div>
   );
 };

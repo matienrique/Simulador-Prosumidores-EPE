@@ -9,9 +9,10 @@ interface Props {
   initialData: ProsumidorData;
   onSubmit: (data: ProsumidorData) => void;
   onBack: () => void;
+  onShowStats?: () => void;
 }
 
-const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) => {
+const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, onShowStats }) => {
   const [formData, setFormData] = useState<ProsumidorData>(initialData);
 
   // Styles
@@ -360,7 +361,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) 
         </button>
       </div>
     </form>
-    <Footer />
+    <Footer onShowStats={onShowStats} />
     </div>
   );
 };

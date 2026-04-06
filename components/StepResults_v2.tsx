@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, UserType } from '../types';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/format';
-import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp, Info, Check, X } from 'lucide-react';
 import Footer from './Footer';
+import { saveFeedback } from '../src/services/statsService';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 
@@ -11,6 +12,7 @@ interface Props {
   userType: UserType;
   onBack: () => void;
   onReset: () => void;
+  onShowStats: () => void;
 }
 
 interface PieData {
@@ -64,10 +66,41 @@ const InteractivePieChart: React.FC<{ data: PieData[] }> = ({ data }) => {
   );
 };
 
-const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) => {
+const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onShowStats }) => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [resolved, setResolved] = useState<boolean | null>(null);
+  const [observations, setObservations] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
+
+  const handleSaveFeedback = async () => {
+    if (resolved === null) return;
+    setIsSaving(true);
+    try {
+      await saveFeedback(resolved, observations, userType, isGD);
+      setSaved(true);
+    } catch (error) {
+      console.error("Error saving feedback:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Save on close if possible
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (resolved !== null && !saved) {
+        // We can't use async saveFeedback here reliably, 
+        // but we can try to use navigator.sendBeacon if we had a REST API.
+        // For Firestore, it's tricky. We'll stick to the button as primary.
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [resolved, saved, userType, observations]);
   
   const handleDownloadPDF = () => {
     setIsGenerating(true);
@@ -221,12 +254,89 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
           </div>
         </div>
 
+        <div className="print-break-inside bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mt-8">
+          {saved ? (
+            <div className="p-12 text-center space-y-4 animate-fade-in">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full mb-4">
+                <Check size={40} strokeWidth={3} />
+              </div>
+              <h3 className="text-2xl font-black text-gray-800 tracking-tight">¡Gracias por tu respuesta!</h3>
+              <p className="text-gray-500 font-medium">Tus comentarios nos ayudan a mejorar el simulador.</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-violet-50 px-6 py-4 border-b border-violet-100">
+                <h3 className="font-bold text-violet-800 flex items-center gap-2">
+                  ¿Obtuvo la respuesta que buscaba?
+                </h3>
+              </div>
+              <div className="p-8 space-y-6">
+                <div className="flex justify-center gap-8">
+                  <button
+                    onClick={() => setResolved(true)}
+                    className={`flex flex-col items-center gap-2 p-6 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                      resolved === true 
+                        ? 'bg-emerald-50 border-emerald-500 shadow-md scale-105' 
+                        : 'bg-white border-gray-100 hover:border-emerald-200'
+                    }`}
+                  >
+                    <div className={`p-4 rounded-full ${resolved === true ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-600'}`}>
+                      <Check size={32} strokeWidth={3} />
+                    </div>
+                    <span className={`font-black text-xl ${resolved === true ? 'text-emerald-700' : 'text-gray-400'}`}>SI</span>
+                  </button>
+
+                  <button
+                    onClick={() => setResolved(false)}
+                    className={`flex flex-col items-center gap-2 p-6 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                      resolved === false 
+                        ? 'bg-red-50 border-red-500 shadow-md scale-105' 
+                        : 'bg-white border-gray-100 hover:border-red-200'
+                    }`}
+                  >
+                    <div className={`p-4 rounded-full ${resolved === false ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600'}`}>
+                      <X size={32} strokeWidth={3} />
+                    </div>
+                    <span className={`font-black text-xl ${resolved === false ? 'text-red-700' : 'text-gray-400'}`}>NO</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                    Observaciones/recomendaciones
+                  </label>
+                  <textarea
+                    value={observations}
+                    onChange={(e) => setObservations(e.target.value)}
+                    placeholder="Escribe aquí tus comentarios..."
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] transition-all"
+                  />
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleSaveFeedback}
+                    disabled={resolved === null || isSaving}
+                    className={`px-10 py-4 rounded-xl font-black text-white shadow-lg transition-all transform active:scale-95 ${
+                      resolved === null || isSaving
+                        ? 'bg-gray-300 cursor-not-allowed'
+                        : 'bg-violet-600 hover:bg-violet-700 hover:-translate-y-1 hover:shadow-xl'
+                    }`}
+                  >
+                    {isSaving ? 'Guardando...' : 'Guardar respuestas'}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
         <div className="no-print flex flex-col md:flex-row gap-4 justify-between pt-6">
           <button onClick={onReset} className="flex items-center justify-center gap-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg font-bold shadow-sm transition-colors"><RefreshCw size={18} /> Reiniciar</button>
           <button onClick={onBack} className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-bold shadow-lg transform hover:-translate-y-0.5 transition-all"><ArrowLeft size={18} /> Volver a editar</button>
         </div>
       </div>
-      <Footer />
+      <Footer onShowStats={onShowStats} />
     </div>
   );
 };

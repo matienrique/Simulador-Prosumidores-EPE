@@ -1,6 +1,6 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LOGO_PROSUMIDORES, LOGO_SANTAFE } from './assets';
 import { UserType, ProsumidorMode, ProsumidorData, ProsumidorGDData, NoProsumidorData, NoProsumidorCategory, CalculationResult } from './types';
 import StepUserType from './components/StepUserType';
@@ -11,7 +11,9 @@ import StepNoProsumidorForm from './components/StepNoProsumidorForm';
 import StepResults from './components/StepResults_v2';
 import StepEpeNoProsumidorSelect from './components/StepEpeNoProsumidorSelect';
 import WelcomeScreen from './components/WelcomeScreen';
+import StatsDashboard from './src/components/StatsDashboard';
 import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD } from './utils/calc_v2';
+import { incrementVisitCount } from './src/services/statsService';
 
 const initialBand = { id: '1', name: 'Última Banda', energy: 0, amount: 0 };
 
@@ -61,12 +63,17 @@ const App: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [userType, setUserType] = useState<UserType | null>(null);
   const [prosumidorMode, setProsumidorMode] = useState<ProsumidorMode | null>(null);
+  const [showStats, setShowStats] = useState<boolean>(false);
 
   const [prosumidorData, setProsumidorData] = useState<ProsumidorData>(initialProsumidorData);
   const [prosumidorGDData, setProsumidorGDData] = useState<ProsumidorGDData>(initialProsumidorGDData);
   const [noProsumidorData, setNoProsumidorData] = useState<NoProsumidorData>(initialNoProsumidorData);
   
   const [results, setResults] = useState<CalculationResult | null>(null);
+
+  useEffect(() => {
+    incrementVisitCount();
+  }, []);
 
   const handleUserSelect = (type: UserType) => {
     setUserType(type);
@@ -116,6 +123,10 @@ const App: React.FC = () => {
   const isEpeNoProsumidorGranular = (type: UserType | null) => 
     type && [UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL, UserType.EPE_NO_PROSUMIDOR_COMERCIAL, UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL, UserType.EPE_NO_PROSUMIDOR_GD].includes(type);
 
+  if (showStats) {
+    return <StatsDashboard onBack={() => setShowStats(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-800 pb-20 font-sans">
       <header className="bg-epe-gradient shadow-lg sticky top-0 z-20 border-b border-white/20 no-print">
@@ -143,13 +154,13 @@ const App: React.FC = () => {
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         {showWelcome && <WelcomeScreen onContinue={() => setShowWelcome(false)} />}
-        {!showWelcome && step === 1 && <StepUserType onSelect={handleUserSelect} />}
-        {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && !prosumidorMode && <StepProsumidorModeSelect onSelect={handleProsumidorModeSelect} onBack={() => { setUserType(null); setStep(1); }} />}
-        {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && prosumidorMode === 'STANDARD' && <StepProsumidorForm initialData={prosumidorData} onSubmit={handleProsumidorSubmit} onBack={() => setProsumidorMode(null)} />}
-        {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && prosumidorMode === 'GRAN_DEMANDA' && <StepProsumidorGDForm initialData={prosumidorGDData} onSubmit={handleProsumidorGDSubmit} onBack={() => setProsumidorMode(null)} />}
-        {!showWelcome && step === 2 && userType === UserType.NO_PROSUMIDOR && <StepEpeNoProsumidorSelect onSelect={handleEpeNoProsumidorCategorySelect} onBack={() => { setUserType(null); setStep(1); }} />}
-        {!showWelcome && step === 2 && isEpeNoProsumidorGranular(userType) && <StepNoProsumidorForm initialData={noProsumidorData} onSubmit={handleNoProsumidorSubmit} onBack={() => setUserType(UserType.NO_PROSUMIDOR)} />}
-        {!showWelcome && step === 3 && results && userType && <StepResults results={results} userType={userType} onBack={() => setStep(2)} onReset={handleReset} />}
+        {!showWelcome && step === 1 && <StepUserType onSelect={handleUserSelect} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && !prosumidorMode && <StepProsumidorModeSelect onSelect={handleProsumidorModeSelect} onBack={() => { setUserType(null); setStep(1); }} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && prosumidorMode === 'STANDARD' && <StepProsumidorForm initialData={prosumidorData} onSubmit={handleProsumidorSubmit} onBack={() => setProsumidorMode(null)} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && prosumidorMode === 'GRAN_DEMANDA' && <StepProsumidorGDForm initialData={prosumidorGDData} onSubmit={handleProsumidorGDSubmit} onBack={() => setProsumidorMode(null)} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 2 && userType === UserType.NO_PROSUMIDOR && <StepEpeNoProsumidorSelect onSelect={handleEpeNoProsumidorCategorySelect} onBack={() => { setUserType(null); setStep(1); }} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 2 && isEpeNoProsumidorGranular(userType) && <StepNoProsumidorForm initialData={noProsumidorData} onSubmit={handleNoProsumidorSubmit} onBack={() => setUserType(UserType.NO_PROSUMIDOR)} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 3 && results && userType && <StepResults results={results} userType={userType} onBack={() => setStep(2)} onReset={handleReset} onShowStats={() => setShowStats(true)} />}
       </main>
     </div>
   );

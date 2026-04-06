@@ -8,9 +8,10 @@ interface Props {
   initialData: ProsumidorGDData;
   onSubmit: (data: ProsumidorGDData) => void;
   onBack: () => void;
+  onShowStats?: () => void;
 }
 
-const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }) => {
+const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, onShowStats }) => {
   const [formData, setFormData] = useState<ProsumidorGDData>(initialData);
 
   // Styles
@@ -325,9 +326,9 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack }
           Calcular Simulación GD
         </button>
       </div>
-
+ 
     </form>
-    <Footer />
+    <Footer onShowStats={onShowStats} />
     </div>
   );
 };

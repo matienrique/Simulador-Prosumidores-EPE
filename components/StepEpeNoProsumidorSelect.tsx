@@ -7,9 +7,10 @@ import Footer from './Footer';
 interface Props {
   onSelect: (type: UserType) => void;
   onBack: () => void;
+  onShowStats?: () => void;
 }
 
-const StepEpeNoProsumidorSelect: React.FC<Props> = ({ onSelect, onBack }) => {
+const StepEpeNoProsumidorSelect: React.FC<Props> = ({ onSelect, onBack, onShowStats }) => {
   const options = [
     { type: UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL, label: 'Usuario Residencial', icon: <Home className="w-6 h-6" /> },
     { type: UserType.EPE_NO_PROSUMIDOR_COMERCIAL, label: 'Usuario Comercial', icon: <Store className="w-6 h-6" /> },
@@ -51,7 +52,7 @@ const StepEpeNoProsumidorSelect: React.FC<Props> = ({ onSelect, onBack }) => {
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer onShowStats={onShowStats} />
     </div>
   );
 };

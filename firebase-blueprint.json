@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User feedback and statistics",
+      "type": "object",
+      "properties": {
+        "number": { "type": "integer", "description": "Consultation number" },
+        "date": { "type": "string", "format": "date-time", "description": "Date of consultation" },
+        "userType": { "type": "string", "description": "Type of user (Prosumidor/No Prosumidor + Category)" },
+        "resolved": { "type": "boolean", "description": "Whether the user resolved their query" },
+        "observations": { "type": "string", "description": "User observations/recommendations" }
+      },
+      "required": ["number", "date", "userType", "resolved"]
+    },
+    "Stats": {
+      "title": "Stats",
+      "description": "Global statistics and counters",
+      "type": "object",
+      "properties": {
+        "visitCount": { "type": "integer", "description": "Total page visits" },
+        "resolvedCount": { "type": "integer", "description": "Total users who resolved their query" },
+        "notResolvedCount": { "type": "integer", "description": "Total users who did not resolve their query" },
+        "lastConsultationNumber": { "type": "integer", "description": "Last consultation number assigned" }
+      },
+      "required": ["visitCount", "resolvedCount", "notResolvedCount", "lastConsultationNumber"]
+    }
+  },
+  "firestore": {
+    "tabla_estadisticas": {
+      "schema": "Feedback",
+      "description": "Collection of user feedback"
+    },
+    "global_stats": {
+      "schema": "Stats",
+      "description": "Collection of global statistics (single document: 'counters')"
+    }
+  }
+}
