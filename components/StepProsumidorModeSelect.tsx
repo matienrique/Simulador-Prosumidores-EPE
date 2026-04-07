@@ -24,7 +24,7 @@ const StepProsumidorModeSelect: React.FC<Props> = ({ onSelect, onBack, onShowSta
             <Zap className="w-12 h-12 text-violet-600" />
           </div>
           <span className="text-xl font-bold text-gray-800 px-4 text-center">Pequeña demanda</span>
-          <span className="text-sm text-gray-500 mt-2">Usuario Residencial, Comercial, Industrial</span>
+          <span className="text-sm text-gray-500 mt-2">Usuario Residencial, Comercial, Industrial y Asociaciones</span>
         </button>
  
         <button
