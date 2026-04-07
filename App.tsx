@@ -86,6 +86,7 @@ const App: React.FC = () => {
     if (type === UserType.EPE_NO_PROSUMIDOR_COMERCIAL) category = NoProsumidorCategory.COMERCIAL;
     if (type === UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL) category = NoProsumidorCategory.INDUSTRIAL;
     if (type === UserType.EPE_NO_PROSUMIDOR_GD) category = NoProsumidorCategory.GRAN_DEMANDA;
+    if (type === UserType.EPE_NO_PROSUMIDOR_ASOCIACIONES) category = NoProsumidorCategory.ASOCIACIONES;
     setNoProsumidorData(prev => ({ ...prev, category }));
     setUserType(type);
   };
@@ -121,7 +122,13 @@ const App: React.FC = () => {
   };
 
   const isEpeNoProsumidorGranular = (type: UserType | null) => 
-    type && [UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL, UserType.EPE_NO_PROSUMIDOR_COMERCIAL, UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL, UserType.EPE_NO_PROSUMIDOR_GD].includes(type);
+    type && [
+      UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL, 
+      UserType.EPE_NO_PROSUMIDOR_COMERCIAL, 
+      UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL, 
+      UserType.EPE_NO_PROSUMIDOR_GD,
+      UserType.EPE_NO_PROSUMIDOR_ASOCIACIONES
+    ].includes(type);
 
   if (showStats) {
     return <StatsDashboard onBack={() => setShowStats(false)} />;

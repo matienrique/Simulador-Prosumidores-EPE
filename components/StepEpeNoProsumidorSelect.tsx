@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserType } from '../types';
-import { Home, Store, Factory, Zap, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Home, Store, Factory, Zap, ArrowRight, ArrowLeft, Users } from 'lucide-react';
 import Footer from './Footer';
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 const StepEpeNoProsumidorSelect: React.FC<Props> = ({ onSelect, onBack, onShowStats }) => {
   const options = [
     { type: UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL, label: 'Usuario Residencial', icon: <Home className="w-6 h-6" /> },
+    { type: UserType.EPE_NO_PROSUMIDOR_ASOCIACIONES, label: 'Asociaciones', icon: <Users className="w-6 h-6" /> },
     { type: UserType.EPE_NO_PROSUMIDOR_COMERCIAL, label: 'Usuario Comercial', icon: <Store className="w-6 h-6" /> },
     { type: UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL, label: 'Usuario Industrial', icon: <Factory className="w-6 h-6" /> },
     { type: UserType.EPE_NO_PROSUMIDOR_GD, label: 'Usuario Gran Demanda', icon: <Zap className="w-6 h-6" /> },

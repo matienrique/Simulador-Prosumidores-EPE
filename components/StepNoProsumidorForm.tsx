@@ -47,6 +47,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   const isResidencial = formData.category === NoProsumidorCategory.RESIDENCIAL;
   const isComercial = formData.category === NoProsumidorCategory.COMERCIAL;
   const isIndustrial = formData.category === NoProsumidorCategory.INDUSTRIAL;
+  const isAsociaciones = formData.category === NoProsumidorCategory.ASOCIACIONES;
 
   // STYLES
   const labelStyleViolet = "block text-base font-bold text-violet-900 mb-2 bg-gradient-to-r from-violet-100 to-white/0 p-1.5 pl-3 rounded-l border-l-4 border-violet-500 shadow-sm";
@@ -193,7 +194,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
         gdData.totalToPay > 0
       );
     }
-    if (isResidencial) {
+    if (isResidencial || isAsociaciones) {
       return (
         !!formData.taxStatus && 
         formData.taxStatus !== ('' as TaxStatus) && 
@@ -271,8 +272,8 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           </select>
         </div>
 
-        {/* Mostrar constantes solo si NO es Gran Demanda y NO es Comercial y NO es Industrial */}
-        {!isGranDemanda && !isResidencial && !isComercial && !isIndustrial && (
+        {/* Mostrar constantes solo si NO es Gran Demanda y NO es Comercial y NO es Industrial y NO es Residencial y NO es Asociaciones */}
+        {!isGranDemanda && !isResidencial && !isComercial && !isIndustrial && !isAsociaciones && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800">
             <div>
               <span className="block font-semibold">Autoconsumo Estimado</span>
@@ -769,22 +770,22 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             </div>
           </div>
         </>
-      ) : isResidencial ? (
-        // --- RESIDENCIAL FORM ---
+      ) : (isResidencial || isAsociaciones) ? (
+        // --- RESIDENCIAL / ASOCIACIONES FORM ---
         <>
           {/* A.0 Bloque inicial (Read only) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
               <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
-              <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[NoProsumidorCategory.RESIDENCIAL].autoconsumo * 100)}</span>
+              <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[formData.category].autoconsumo * 100)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Reconocimiento Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.RESIDENCIAL].reconUnit)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[formData.category].reconUnit)}</span>
             </div>
             <div>
               <span className="block font-semibold opacity-75">Importe GSF Unitario</span>
-              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[NoProsumidorCategory.RESIDENCIAL].gsfUnit)}</span>
+              <span className="text-lg font-bold">{formatCurrency(CALCULATOR_CONSTANTS[formData.category].gsfUnit)}</span>
             </div>
           </div>
 

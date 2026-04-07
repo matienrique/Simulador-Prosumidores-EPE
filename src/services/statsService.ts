@@ -121,6 +121,7 @@ const getUserTypeLabel = (type: UserType, isGD?: boolean): string => {
     case UserType.EPE_NO_PROSUMIDOR_COMERCIAL: return 'No Prosumidor - Comercial';
     case UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL: return 'No Prosumidor - Industrial';
     case UserType.EPE_NO_PROSUMIDOR_GD: return 'No Prosumidor - Gran Demanda';
+    case UserType.EPE_NO_PROSUMIDOR_ASOCIACIONES: return 'No Prosumidor - Asociaciones';
     default: return 'Desconocido';
   }
 };

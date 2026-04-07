@@ -5,6 +5,7 @@ export const CALCULATOR_CONSTANTS = {
   [NoProsumidorCategory.COMERCIAL]: { autoconsumo: 0.75, reconUnit: 108.79263, gsfUnit: 40.51 },
   [NoProsumidorCategory.INDUSTRIAL]: { autoconsumo: 0.90, reconUnit: 108.79263, gsfUnit: 40.51 },
   [NoProsumidorCategory.GRAN_DEMANDA]: { autoconsumo: 0.80, reconUnit: 85.54346, gsfUnit: 40.51 },
+  [NoProsumidorCategory.ASOCIACIONES]: { autoconsumo: 0.50, reconUnit: 108.79, gsfUnit: 24.27 },
 };
 
 const safeDiv = (num: number, den: number): number => {
