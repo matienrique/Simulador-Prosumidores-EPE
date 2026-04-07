@@ -144,8 +144,8 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
           <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 mb-6 text-center">
             <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Potencia máxima de instalación</h3>
             <p className="text-3xl font-extrabold text-gray-900">
-              {formatNumber(isGD ? (results.details?.["Generación Promedio (kWh)"] as number || 0) : (results.details?.["Potencia Estimada (kW)"] as number || 0), 2)}
-              <span className="text-lg text-gray-400 ml-2 font-bold">{isGD ? 'kWh' : 'kW'}</span>
+              {formatNumber(isGD ? (results.details?.["Potencia Contratada (kW)"] as number || 0) : (results.details?.["Potencia Estimada (kW)"] as number || 0), 2)}
+              <span className="text-lg text-gray-400 ml-2 font-bold">{isGD ? 'kW' : 'kW'}</span>
             </p>
           </div>
         )}
