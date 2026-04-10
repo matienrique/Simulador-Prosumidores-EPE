@@ -188,7 +188,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-700 font-medium">
-                  Si el usuario no corresponde a la categoría N1 del régimen de segmentación de subsidios de la EPE, los subsidios aplicados por el Gobierno Nacional resultan significativamente menores; en consecuencia, los ahorros estimados podrían encontrarse sobrevalorados respecto de los reales
+                  Si el usuario no corresponde a la categoría SS (sin subsidios) del régimen de segmentación de subsidios de la EPE, las subvenciones aplicadas por el Gobierno Nacional resultan significativamente menores; en consecuencia, los ahorros estimados podrían encontrarse sobrevalorados respecto de los reales
                 </p>
               </div>
             </div>
