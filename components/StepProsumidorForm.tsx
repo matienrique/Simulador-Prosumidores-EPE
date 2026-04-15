@@ -99,7 +99,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
     <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in flex-grow">
       
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Información de Medición (kWh)</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Información de medición y lectura</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className={labelStyle}>Energía Generada (EG)</label>

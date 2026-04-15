@@ -203,7 +203,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
             {!isProsumidor && results.billWithProsumers < 0 && (
               <div className="mt-4 bg-white p-3 rounded-lg border-l-4 border-violet-500 flex items-start gap-3 shadow-sm">
                 <AlertCircle className="w-5 h-5 text-violet-600 mt-0.5" />
-                <p className="text-sm text-gray-700 font-medium">En tu próxima factura se acreditará un reintegro monetario igual al valor observado.</p>
+                <p className="text-sm text-gray-700 font-medium">En tu próxima factura se acreditará este saldo a tu favor que se irá acumulando en los futuros consumos</p>
               </div>
             )}
           </div>
@@ -241,7 +241,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
           <div className="bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-4 border-b border-orange-200"><h3 className="font-bold text-orange-800">Eficiencia Energética</h3></div>
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
             <div><div className="flex justify-between items-end mb-2"><p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Porcentaje de autoconsumo</p><span className="text-2xl font-extrabold text-violet-600">{results.autoconsumoPercent !== undefined ? formatNumber(results.autoconsumoPercent, 1) : 0}%</span></div><div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden"><div className="bg-violet-600 h-4 rounded-full" style={{ width: `${Math.min(100, Math.max(0, results.autoconsumoPercent || 0))}%` }}></div></div></div>
-            {results.injectionPercent !== undefined && (<div><div className="flex justify-between items-end mb-2"><p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Porcentaje de generación con respecto al consumo</p><span className="text-2xl font-extrabold text-orange-500">{formatNumber(results.injectionPercent, 1)}%</span></div><div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden"><div className="bg-orange-500 h-4 rounded-full" style={{ width: `${Math.min(100, Math.max(0, results.injectionPercent || 0))}%` }}></div></div></div>)}
+            {results.injectionPercent !== undefined && (<div><div className="flex justify-between items-end mb-2"><p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Relación de lo generado sobre lo consumido</p><span className="text-2xl font-extrabold text-orange-500">{formatNumber(results.injectionPercent, 1)}%</span></div><div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden"><div className="bg-orange-500 h-4 rounded-full" style={{ width: `${Math.min(100, Math.max(0, results.injectionPercent || 0))}%` }}></div></div></div>)}
           </div>
         </div>
 
@@ -311,6 +311,13 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
                     placeholder="Escribe aquí tus comentarios..."
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] transition-all"
                   />
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center gap-3 shadow-sm animate-fade-in">
+                  <Info className="text-blue-600 w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm text-blue-800 font-bold">
+                    Dejá tu correo de contacto para solucionar tus inquietudes
+                  </p>
                 </div>
 
                 <div className="flex justify-center">

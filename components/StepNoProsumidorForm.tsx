@@ -299,7 +299,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.0 Bloque inicial (Read only) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
-              <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
+              <span className="block font-semibold opacity-75">Autoconsumo estimado</span>
               <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[NoProsumidorCategory.COMERCIAL].autoconsumo * 100)}</span>
             </div>
             <div>
@@ -312,9 +312,9 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             </div>
           </div>
 
-          {/* A.1 Información de medición */}
+          {/* A.1 Información de medición y lectura */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Información de medición</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Información de medición y lectura</h3>
             
             <div className="mb-6">
               <label className={labelStyle}>Consumo total (kWh)</label>
@@ -342,7 +342,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2 italic flex items-center gap-1">
-                <Info size={12} /> Recomendación: completá los 6 bimestres con los consumos históricos de tu factura para estimar la potencia máxima.
+                <Info size={12} /> Completá los 6 bimestres con los consumos históricos de tu factura para estimar la potencia máxima.
               </p>
             </div>
           </div>
@@ -416,7 +416,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.3 Bandas dinámicas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-orange-100">
-              <h3 className="text-lg font-semibold text-gray-800">Bandas dinámicas (No Prosumidor)</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Bandas dinámicas</h3>
               <button
                 type="button"
                 onClick={addBand}
@@ -472,7 +472,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Importes adicionales</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className={labelStyle}>CAP ($)</label>
+                <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
                   value={formData.cap || ''}
@@ -633,9 +633,9 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             </div>
           </div>
 
-          {/* A.3 Información de lecturas y componentes */}
+          {/* A.3 Información de medición y lectura */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-violet-800 mb-4 border-b pb-2 border-violet-100">Información de lecturas, consumos y componentes del importe básico</h3>
+            <h3 className="text-lg font-semibold text-violet-800 mb-4 border-b pb-2 border-violet-100">Información de medición y lectura</h3>
             <p className="text-xs text-gray-500 mb-4">el usuario debe completar con los importes de la ultima columna que figura en la hoja 2 de la factura</p>
             
             <div className="flex flex-col gap-4">
@@ -734,7 +734,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className={labelStyle}>Cuota de alumbrado público ($)</label>
+                <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
                   value={gdData.cap || ''}
@@ -776,7 +776,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.0 Bloque inicial (Read only) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
-              <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
+              <span className="block font-semibold opacity-75">Autoconsumo estimado</span>
               <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[formData.category].autoconsumo * 100)}</span>
             </div>
             <div>
@@ -789,9 +789,9 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             </div>
           </div>
 
-          {/* A.1 Información de medición */}
+          {/* A.1 Información de medición y lectura */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Información de medición</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Información de medición y lectura</h3>
             
             <div className="mb-6">
               <label className={labelStyle}>Consumo total (kWh)</label>
@@ -819,7 +819,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2 italic flex items-center gap-1">
-                <Info size={12} /> Recomendación: completá los 6 bimestres con los consumos históricos de tu factura para estimar la potencia máxima.
+                <Info size={12} /> Completá los 6 bimestres con los consumos históricos de tu factura para estimar la potencia máxima.
               </p>
             </div>
           </div>
@@ -893,7 +893,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.3 Bandas dinámicas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-orange-100">
-              <h3 className="text-lg font-semibold text-gray-800">Bandas dinámicas (No Prosumidor)</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Bandas dinámicas</h3>
               <button
                 type="button"
                 onClick={addBand}
@@ -949,7 +949,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Importes adicionales</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className={labelStyle}>CAP ($)</label>
+                <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
                   value={formData.cap || ''}
@@ -994,7 +994,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.0 Bloque inicial (Read only) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-orange-50 p-4 rounded-lg text-sm text-orange-800 mb-6 border border-orange-100 shadow-sm">
             <div>
-              <span className="block font-semibold opacity-75">Autoconsumo (solo lectura)</span>
+              <span className="block font-semibold opacity-75">Autoconsumo estimado</span>
               <span className="text-lg font-bold">{formatPercent(CALCULATOR_CONSTANTS[NoProsumidorCategory.INDUSTRIAL].autoconsumo * 100)}</span>
             </div>
             <div>
@@ -1007,9 +1007,9 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             </div>
           </div>
 
-          {/* A.1 Información de medición */}
+          {/* A.1 Información de medición y lectura */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Información de medición</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Información de medición y lectura</h3>
             
             <div className="mb-6">
               <label className={labelStyle}>Consumo total (kWh)</label>
@@ -1037,7 +1037,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2 italic flex items-center gap-1">
-                <Info size={12} /> Recomendación: completá los 6 bimestres con los consumos históricos de tu factura para estimar la potencia máxima.
+                <Info size={12} /> Completá los 6 bimestres con los consumos históricos de tu factura para estimar la potencia máxima.
               </p>
             </div>
           </div>
@@ -1111,7 +1111,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.3 Bandas dinámicas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-4 border-b pb-2 border-orange-100">
-              <h3 className="text-lg font-semibold text-gray-800">Bandas dinámicas (No Prosumidor)</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Bandas dinámicas</h3>
               <button
                 type="button"
                 onClick={addBand}
@@ -1167,7 +1167,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-orange-100">Importes adicionales</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className={labelStyle}>CAP ($)</label>
+                <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
                   value={formData.cap || ''}
