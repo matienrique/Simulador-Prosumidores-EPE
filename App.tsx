@@ -131,7 +131,16 @@ const App: React.FC = () => {
     ].includes(type);
 
   if (showStats) {
-    return <StatsDashboard onBack={() => setShowStats(false)} />;
+    return (
+      <StatsDashboard 
+        onBack={() => setShowStats(false)} 
+        noProsumidorData={noProsumidorData}
+        onAdminUpdate={(newData) => {
+          setNoProsumidorData(newData);
+          setResults(calculateNoProsumidor(newData));
+        }}
+      />
+    );
   }
 
   return (
@@ -167,7 +176,15 @@ const App: React.FC = () => {
         {!showWelcome && step === 2 && userType === UserType.PROSUMIDOR && prosumidorMode === 'GRAN_DEMANDA' && <StepProsumidorGDForm initialData={prosumidorGDData} onSubmit={handleProsumidorGDSubmit} onBack={() => setProsumidorMode(null)} onShowStats={() => setShowStats(true)} />}
         {!showWelcome && step === 2 && userType === UserType.NO_PROSUMIDOR && <StepEpeNoProsumidorSelect onSelect={handleEpeNoProsumidorCategorySelect} onBack={() => { setUserType(null); setStep(1); }} onShowStats={() => setShowStats(true)} />}
         {!showWelcome && step === 2 && isEpeNoProsumidorGranular(userType) && <StepNoProsumidorForm initialData={noProsumidorData} onSubmit={handleNoProsumidorSubmit} onBack={() => setUserType(UserType.NO_PROSUMIDOR)} onShowStats={() => setShowStats(true)} />}
-        {!showWelcome && step === 3 && results && userType && <StepResults results={results} userType={userType} onBack={() => setStep(2)} onReset={handleReset} onShowStats={() => setShowStats(true)} />}
+        {!showWelcome && step === 3 && results && userType && (
+          <StepResults 
+            results={results} 
+            userType={userType} 
+            onBack={() => setStep(2)} 
+            onReset={handleReset} 
+            onShowStats={() => setShowStats(true)} 
+          />
+        )}
       </main>
     </div>
   );

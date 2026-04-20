@@ -334,7 +334,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     else if (gd.taxStatus === 'Exento') { ivaRate = 0.21; percepcionRate = 0.0; }
     
     const totalImpuestosCPGD = (ivaRate + 0.06 + 0.015 + percepcionRate) * baseImpuestosCPGD + (gd.cap * (1 + ivaRate + percepcionRate)) + gd.ley12692;
-    const reconGSF = (energiaGeneradaResto + energiaGeneradaPico + energiaGeneradaValle) * 34.93;
+    const reconGSF = (energiaGeneradaResto + energiaGeneradaPico + energiaGeneradaValle) * CALCULATOR_CONSTANTS[NoProsumidorCategory.GRAN_DEMANDA].gsfUnit;
     const totalPagarCPGD = baseImpuestosCPGD + totalImpuestosCPGD - reconGSF;
     
     const ahorroReconEPE = reconEPESF_CPGD;

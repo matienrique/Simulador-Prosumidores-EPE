@@ -1,12 +1,157 @@
 import React, { useState, useEffect } from 'react';
 import { getFeedbackList, getGlobalStats, clearAllData, FeedbackData, GlobalStats } from '../services/statsService';
-import { ArrowLeft, Trash2, Lock, Unlock, Users, CheckCircle, XCircle, Eye, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Trash2, Lock, Unlock, Users, CheckCircle, XCircle, Eye, AlertTriangle, Settings, ChevronUp, ChevronDown } from 'lucide-react';
+import { NoProsumidorData, NoProsumidorCategory } from '../../types';
+import { CALCULATOR_CONSTANTS } from '../../utils/calc_v2';
 
 interface Props {
   onBack: () => void;
+  noProsumidorData?: NoProsumidorData;
+  onAdminUpdate?: (newData: NoProsumidorData) => void;
 }
 
-const StatsDashboard: React.FC<Props> = ({ onBack }) => {
+const AdminControlItem: React.FC<{
+  label: string;
+  currentValue: number;
+  onSave: (val: string) => void;
+}> = ({ label, currentValue, onSave }) => {
+  const [val, setVal] = useState(currentValue.toString());
+  
+  useEffect(() => {
+    setVal(currentValue.toString());
+  }, [currentValue]);
+
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3">
+      <span className="text-sm font-semibold text-slate-800">{label}</span>
+      <span className="text-sm text-slate-600">Valor actual: <span className="font-bold text-slate-900">${currentValue}</span></span>
+      <div className="flex gap-2 mt-1">
+        <input 
+          type="number"
+          step="any"
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          className="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+        />
+        <button 
+          onClick={() => onSave(val)}
+          className="bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+        >
+          Modificar
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const AdminDashboardPanel: React.FC<{
+  noProsumidorData?: NoProsumidorData;
+  onAdminUpdate?: (newData: NoProsumidorData) => void;
+}> = ({ noProsumidorData, onAdminUpdate }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleUpdate = (
+    field: 'gsfUnit' | 'reconUnit',
+    category: NoProsumidorCategory,
+    newValStr: string
+  ) => {
+    const val = parseFloat(newValStr);
+    if (isNaN(val)) return;
+
+    // Modificamos constante global 
+    CALCULATOR_CONSTANTS[category][field] = val;
+
+    if (noProsumidorData && onAdminUpdate) {
+      let updatedData = { ...noProsumidorData };
+
+      // Regla especial para Gran Demanda
+      if (field === 'reconUnit' && category === NoProsumidorCategory.GRAN_DEMANDA) {
+        if (updatedData.gdData) {
+          updatedData.gdData = {
+            ...updatedData.gdData,
+            eaConsRestoPrice: val
+          };
+        }
+      }
+
+      onAdminUpdate(updatedData);
+    }
+    setRefreshKey(k => k + 1);
+  };
+
+  const categoriesGSF = [
+    { label: 'Reconocimiento GSF - Residencial', cat: NoProsumidorCategory.RESIDENCIAL },
+    { label: 'Reconocimiento GSF - Industrial', cat: NoProsumidorCategory.INDUSTRIAL },
+    { label: 'Reconocimiento GSF - Comercial', cat: NoProsumidorCategory.COMERCIAL },
+    { label: 'Reconocimiento GSF - Asociaciones', cat: NoProsumidorCategory.ASOCIACIONES },
+    { label: 'Reconocimiento GSF - Gran Demanda', cat: NoProsumidorCategory.GRAN_DEMANDA },
+  ];
+
+  const categoriesRecon = [
+    { label: 'Reconocimiento EPE - Residencial', cat: NoProsumidorCategory.RESIDENCIAL },
+    { label: 'Reconocimiento EPE - Comercial', cat: NoProsumidorCategory.COMERCIAL },
+    { label: 'Reconocimiento EPE - Industrial', cat: NoProsumidorCategory.INDUSTRIAL },
+    { label: 'Reconocimiento EPE - Asociaciones', cat: NoProsumidorCategory.ASOCIACIONES },
+    { label: 'Reconocimiento EPE - Gran Demanda', cat: NoProsumidorCategory.GRAN_DEMANDA },
+  ];
+
+  return (
+    <div className="mb-10 bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden no-print shadow-sm">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 border-b border-transparent transition-all"
+        style={{ borderBottomColor: isOpen ? '#e2e8f0' : 'transparent' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="bg-slate-100 p-2 rounded-lg">
+            <Settings className="w-5 h-5 text-slate-700" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800">Tablero de Control (Variables Globales)</h3>
+        </div>
+        {isOpen ? <ChevronUp size={24} className="text-slate-500" /> : <ChevronDown size={24} className="text-slate-500" />}
+      </button>
+
+      {isOpen && (
+        <div className="p-6 md:p-8 space-y-10 animate-fade-in bg-slate-50" key={refreshKey}>
+          <div>
+             <h4 className="text-lg font-bold text-slate-800 mb-5 border-b border-slate-200 pb-3 flex items-center gap-2">
+               Valores de gsfUnit
+             </h4>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               {categoriesGSF.map(item => (
+                 <AdminControlItem 
+                   key={item.label}
+                   label={item.label}
+                   currentValue={CALCULATOR_CONSTANTS[item.cat].gsfUnit}
+                   onSave={(val) => handleUpdate('gsfUnit', item.cat, val)}
+                 />
+               ))}
+             </div>
+          </div>
+
+          <div>
+             <h4 className="text-lg font-bold text-slate-800 mb-5 border-b border-slate-200 pb-3 flex items-center gap-2">
+               Valores de reconUnit
+             </h4>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               {categoriesRecon.map(item => (
+                 <AdminControlItem 
+                   key={item.label}
+                   label={item.label}
+                   currentValue={CALCULATOR_CONSTANTS[item.cat].reconUnit}
+                   onSave={(val) => handleUpdate('reconUnit', item.cat, val)}
+                 />
+               ))}
+             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpdate }) => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackData[]>([]);
@@ -127,6 +272,11 @@ const StatsDashboard: React.FC<Props> = ({ onBack }) => {
             </button>
           </div>
         </div>
+
+        <AdminDashboardPanel 
+          noProsumidorData={noProsumidorData} 
+          onAdminUpdate={onAdminUpdate} 
+        />
 
         {loading ? (
           <div className="flex justify-center py-20">

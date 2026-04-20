@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, UserType } from '../types';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/format';
-import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, ChevronDown, ChevronUp, Info, Check, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Leaf, Trees, Banknote, AlertCircle, Download, PieChart as PieIcon, Info, Check, X } from 'lucide-react';
 import Footer from './Footer';
 import { saveFeedback } from '../src/services/statsService';
 // @ts-ignore
@@ -338,7 +338,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
           )}
         </div>
 
-        <div className="no-print flex flex-col md:flex-row gap-4 justify-between pt-6">
+        <div className="no-print flex flex-col md:flex-row gap-4 justify-between mt-8 pt-6">
           <button onClick={onReset} className="flex items-center justify-center gap-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg font-bold shadow-sm transition-colors"><RefreshCw size={18} /> Reiniciar</button>
           <button onClick={onBack} className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-bold shadow-lg transform hover:-translate-y-0.5 transition-all"><ArrowLeft size={18} /> Volver a editar</button>
         </div>

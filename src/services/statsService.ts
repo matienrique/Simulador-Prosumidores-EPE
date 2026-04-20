@@ -20,96 +20,118 @@ export interface GlobalStats {
 const STATS_DOC_ID = 'counters';
 
 export const incrementVisitCount = async () => {
-  const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
-  const statsSnap = await getDoc(statsRef);
+  try {
+    const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
+    const statsSnap = await getDoc(statsRef);
 
-  if (statsSnap.exists()) {
-    const data = statsSnap.data() as GlobalStats;
-    // Update: If the current count is less than 104, we seed it to 104 as requested.
-    const newCount = Math.max(data.visitCount + 1, 104);
-    await updateDoc(statsRef, { visitCount: newCount });
-  } else {
-    await setDoc(statsRef, {
-      visitCount: 104, // Start at 104 if it doesn't exist
-      resolvedCount: 0,
-      notResolvedCount: 0,
-      lastConsultationNumber: 0
-    });
+    if (statsSnap.exists()) {
+      const data = statsSnap.data() as GlobalStats;
+      // Update: If the current count is less than 104, we seed it to 104 as requested.
+      const newCount = Math.max(data.visitCount + 1, 104);
+      await updateDoc(statsRef, { visitCount: newCount });
+    } else {
+      await setDoc(statsRef, {
+        visitCount: 104, // Start at 104 if it doesn't exist
+        resolvedCount: 0,
+        notResolvedCount: 0,
+        lastConsultationNumber: 0
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to increment visit count, operating offline or error: ", error);
   }
 };
 
 export const saveFeedback = async (resolved: boolean, observations: string, userType: UserType, isGD?: boolean) => {
-  const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
-  const statsSnap = await getDoc(statsRef);
-  
-  let nextNumber = 1;
-  let resolvedCount = 0;
-  let notResolvedCount = 0;
-
-  if (statsSnap.exists()) {
-    const data = statsSnap.data() as GlobalStats;
-    nextNumber = data.lastConsultationNumber + 1;
-    resolvedCount = resolved ? data.resolvedCount + 1 : data.resolvedCount;
-    notResolvedCount = !resolved ? data.notResolvedCount + 1 : data.notResolvedCount;
+  try {
+    const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
+    const statsSnap = await getDoc(statsRef);
     
-    await updateDoc(statsRef, {
-      lastConsultationNumber: nextNumber,
-      resolvedCount,
-      notResolvedCount
-    });
-  } else {
-    resolvedCount = resolved ? 1 : 0;
-    notResolvedCount = !resolved ? 1 : 0;
-    await setDoc(statsRef, {
-      visitCount: 1,
-      resolvedCount,
-      notResolvedCount,
-      lastConsultationNumber: 1
-    });
+    let nextNumber = 1;
+    let resolvedCount = 0;
+    let notResolvedCount = 0;
+
+    if (statsSnap.exists()) {
+      const data = statsSnap.data() as GlobalStats;
+      nextNumber = data.lastConsultationNumber + 1;
+      resolvedCount = resolved ? data.resolvedCount + 1 : data.resolvedCount;
+      notResolvedCount = !resolved ? data.notResolvedCount + 1 : data.notResolvedCount;
+      
+      await updateDoc(statsRef, {
+        lastConsultationNumber: nextNumber,
+        resolvedCount,
+        notResolvedCount
+      });
+    } else {
+      resolvedCount = resolved ? 1 : 0;
+      notResolvedCount = !resolved ? 1 : 0;
+      await setDoc(statsRef, {
+        visitCount: 1,
+        resolvedCount,
+        notResolvedCount,
+        lastConsultationNumber: 1
+      });
+    }
+
+    const feedback: FeedbackData = {
+      number: nextNumber,
+      date: new Date().toLocaleDateString(),
+      userType: getUserTypeLabel(userType, isGD),
+      resolved,
+      observations
+    };
+
+    await addDoc(collection(db, 'tabla_estadisticas'), feedback);
+  } catch (error) {
+    console.error("Failed to save feedback: ", error);
   }
-
-  const feedback: FeedbackData = {
-    number: nextNumber,
-    date: new Date().toLocaleDateString(),
-    userType: getUserTypeLabel(userType, isGD),
-    resolved,
-    observations
-  };
-
-  await addDoc(collection(db, 'tabla_estadisticas'), feedback);
 };
 
 export const getFeedbackList = async (): Promise<FeedbackData[]> => {
-  const q = query(collection(db, 'tabla_estadisticas'), orderBy('number', 'asc'));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => doc.data() as FeedbackData);
+  try {
+    const q = query(collection(db, 'tabla_estadisticas'), orderBy('number', 'asc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as FeedbackData);
+  } catch (error) {
+    console.error("Error fetching feedback list:", error);
+    return [];
+  }
 };
 
 export const getGlobalStats = async (): Promise<GlobalStats | null> => {
-  const statsSnap = await getDoc(doc(db, 'global_stats', STATS_DOC_ID));
-  return statsSnap.exists() ? (statsSnap.data() as GlobalStats) : null;
+  try {
+    const statsSnap = await getDoc(doc(db, 'global_stats', STATS_DOC_ID));
+    return statsSnap.exists() ? (statsSnap.data() as GlobalStats) : null;
+  } catch (error) {
+    console.error("Error fetching global stats:", error);
+    return null;
+  }
 };
 
 export const clearAllData = async () => {
-  const batch = writeBatch(db);
-  
-  // Clear feedback
-  const feedbackSnap = await getDocs(collection(db, 'tabla_estadisticas'));
-  feedbackSnap.docs.forEach(doc => batch.delete(doc.ref));
-  
-  // Reset counters (keep visit count?)
-  const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
-  const statsSnap = await getDoc(statsRef);
-  const currentVisitCount = statsSnap.exists() ? statsSnap.data().visitCount : 0;
-  
-  batch.set(statsRef, {
-    visitCount: currentVisitCount,
-    resolvedCount: 0,
-    notResolvedCount: 0,
-    lastConsultationNumber: 0
-  });
+  try {
+    const batch = writeBatch(db);
+    
+    // Clear feedback
+    const feedbackSnap = await getDocs(collection(db, 'tabla_estadisticas'));
+    feedbackSnap.docs.forEach((d) => batch.delete(d.ref));
+    
+    // Reset counters (keep visit count?)
+    const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
+    const statsSnap = await getDoc(statsRef);
+    const currentVisitCount = statsSnap.exists() ? statsSnap.data().visitCount : 0;
+    
+    batch.set(statsRef, {
+      visitCount: currentVisitCount,
+      resolvedCount: 0,
+      notResolvedCount: 0,
+      lastConsultationNumber: 0
+    });
 
-  await batch.commit();
+    await batch.commit();
+  } catch (error) {
+    console.error("Error clearing data:", error);
+  }
 };
 
 const getUserTypeLabel = (type: UserType, isGD?: boolean): string => {
