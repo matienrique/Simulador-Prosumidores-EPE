@@ -8,6 +8,12 @@ export const CALCULATOR_CONSTANTS = {
   [NoProsumidorCategory.ASOCIACIONES]: { autoconsumo: 0.50, reconUnit: 108.79, gsfUnit: 24.27 },
 };
 
+export const GLOBAL_CONSTANTS = {
+  tipoCambio: 1400,
+  inversionResidencial: 1500,
+  inversionNoResidencial: 1100,
+};
+
 const safeDiv = (num: number, den: number): number => {
   if (den === 0 || isNaN(den)) return 0;
   return num / den;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getFeedbackList, getGlobalStats, clearAllData, FeedbackData, GlobalStats } from '../services/statsService';
 import { ArrowLeft, Trash2, Lock, Unlock, Users, CheckCircle, XCircle, Eye, AlertTriangle, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import { NoProsumidorData, NoProsumidorCategory } from '../../types';
-import { CALCULATOR_CONSTANTS } from '../../utils/calc_v2';
+import { CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS } from '../../utils/calc_v2';
 
 interface Props {
   onBack: () => void;
@@ -80,6 +80,18 @@ const AdminDashboardPanel: React.FC<{
     setRefreshKey(k => k + 1);
   };
 
+  const handleUpdateGlobal = (field: keyof typeof GLOBAL_CONSTANTS, newValStr: string) => {
+    const val = parseFloat(newValStr);
+    if (isNaN(val)) return;
+
+    GLOBAL_CONSTANTS[field] = val;
+
+    if (noProsumidorData && onAdminUpdate) {
+      onAdminUpdate({ ...noProsumidorData });
+    }
+    setRefreshKey(k => k + 1);
+  };
+
   const categoriesGSF = [
     { label: 'Reconocimiento GSF - Residencial', cat: NoProsumidorCategory.RESIDENCIAL },
     { label: 'Reconocimiento GSF - Industrial', cat: NoProsumidorCategory.INDUSTRIAL },
@@ -114,6 +126,29 @@ const AdminDashboardPanel: React.FC<{
 
       {isOpen && (
         <div className="p-6 md:p-8 space-y-10 animate-fade-in bg-slate-50" key={refreshKey}>
+          <div>
+             <h4 className="text-lg font-bold text-slate-800 mb-5 border-b border-slate-200 pb-3 flex items-center gap-2">
+               Constantes Generales de Inversión
+             </h4>
+             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+               <AdminControlItem 
+                 label="Tipo de cambio"
+                 currentValue={GLOBAL_CONSTANTS.tipoCambio}
+                 onSave={(val) => handleUpdateGlobal('tipoCambio', val)}
+               />
+               <AdminControlItem 
+                 label="Inversión residencial"
+                 currentValue={GLOBAL_CONSTANTS.inversionResidencial}
+                 onSave={(val) => handleUpdateGlobal('inversionResidencial', val)}
+               />
+               <AdminControlItem 
+                 label="Inversión no residencial"
+                 currentValue={GLOBAL_CONSTANTS.inversionNoResidencial}
+                 onSave={(val) => handleUpdateGlobal('inversionNoResidencial', val)}
+               />
+             </div>
+          </div>
+
           <div>
              <h4 className="text-lg font-bold text-slate-800 mb-5 border-b border-slate-200 pb-3 flex items-center gap-2">
                Valores de gsfUnit
