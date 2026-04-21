@@ -332,6 +332,15 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div className="flex items-center gap-4">
+                  <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600"><CheckCircle size={24} /></div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Completaron</p>
+                    <p className="text-2xl font-black text-gray-800">{stats?.completaronCount || 250}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
                   <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600"><CheckCircle size={24} /></div>
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Resolvieron</p>
@@ -345,15 +354,6 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">No Resolvieron</p>
                     <p className="text-2xl font-black text-gray-800">{stats?.notResolvedCount || 0}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-violet-50 rounded-xl text-violet-600"><Users size={24} /></div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Consultas Totales</p>
-                    <p className="text-2xl font-black text-gray-800">{stats?.lastConsultationNumber || 0}</p>
                   </div>
                 </div>
               </div>

@@ -13,7 +13,8 @@ import StepEpeNoProsumidorSelect from './components/StepEpeNoProsumidorSelect';
 import WelcomeScreen from './components/WelcomeScreen';
 import StatsDashboard from './src/components/StatsDashboard';
 import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD } from './utils/calc_v2';
-import { incrementVisitCount } from './src/services/statsService';
+import { MessageCircle } from 'lucide-react';
+import { incrementVisitCount, incrementCompletaronCount } from './src/services/statsService';
 
 const initialBand = { id: '1', name: 'Última Banda', energy: 0, amount: 0 };
 
@@ -97,18 +98,21 @@ const App: React.FC = () => {
     setProsumidorData(data);
     setResults(calculateProsumidor(data));
     setStep(3);
+    incrementCompletaronCount();
   };
 
   const handleProsumidorGDSubmit = (data: ProsumidorGDData) => {
     setProsumidorGDData(data);
     setResults(calculateProsumidorGD(data));
     setStep(3);
+    incrementCompletaronCount();
   };
 
   const handleNoProsumidorSubmit = (data: NoProsumidorData) => {
     setNoProsumidorData(data);
     setResults(calculateNoProsumidor(data));
     setStep(3);
+    incrementCompletaronCount();
   };
 
   const handleReset = () => {
@@ -186,6 +190,23 @@ const App: React.FC = () => {
           />
         )}
       </main>
+
+      {step === 2 && !showWelcome && (
+        <a 
+          href="https://docs.google.com/document/d/1w2bWxg6J2fYoaCvwZxkTuyHLcnjo52FcAU8H5cdSDz8/edit?tab=t.0" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 bg-violet-600 text-white p-4 rounded-t-2xl rounded-bl-2xl rounded-br-sm shadow-2xl flex items-center gap-3 hover:bg-violet-700 hover:scale-105 transition-transform z-50 group max-w-[280px]"
+        >
+          <div className="absolute -bottom-2 -right-1 w-4 h-4 bg-violet-600 transform rotate-45 rounded-sm"></div>
+          <div className="p-2 bg-white/20 rounded-full flex-shrink-0 animate-pulse">
+            <MessageCircle className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-sm font-bold leading-tight">
+            ¿Tenés dudas de cómo llenar los datos? Cliqueá acá
+          </span>
+        </a>
+      )}
     </div>
   );
 };

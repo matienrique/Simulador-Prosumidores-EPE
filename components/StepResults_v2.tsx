@@ -150,8 +150,83 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
           </button>
         </div>
 
-        {!isProsumidor && (
+        {!isProsumidor ? (
           <>
+            <div className="print-break-inside bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-lg font-medium opacity-90 uppercase tracking-widest">Ahorro Total Estimado</h2>
+                <div className="flex items-baseline gap-4 mt-2">
+                  <span className="text-5xl font-extrabold">{formatCurrency(results.totalSavings)}</span>
+                  <span className="text-2xl font-bold bg-white/20 px-3 py-1 rounded-lg border border-white/30">{formatPercent(results.totalSavingsPercent)}</span>
+                </div>
+              </div>
+              <Banknote className="w-20 h-20 opacity-20" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside mb-6">
+              <div className="p-6 rounded-2xl shadow-md border-t-4 bg-orange-50 border-orange-500">
+                <h3 className="text-sm font-bold text-gray-900 mb-1 uppercase tracking-wider">Factura Estimada (Prosumidor)</h3>
+                <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithProsumers)}</p>
+                <span className="inline-block px-3 py-1 bg-white text-xs font-bold rounded-full shadow-sm text-gray-900 border border-gray-100">Con Prosumidores 4.0</span>
+                {results.billWithProsumers < 0 && (
+                  <div className="mt-4 bg-white p-3 rounded-lg border-l-4 border-violet-500 flex items-start gap-3 shadow-sm">
+                    <AlertCircle className="w-5 h-5 text-violet-600 mt-0.5" />
+                    <p className="text-sm text-gray-900 font-bold">En tu próxima factura se acreditará este saldo a tu favor que se irá acumulando en los futuros consumos</p>
+                  </div>
+                )}
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-md border-t-4 border-gray-300">
+                <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Tu Factura Actual</h3>
+                <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithoutProsumers)}</p>
+                <span className="inline-block px-3 py-1 bg-gray-100 text-xs font-bold rounded-full text-gray-500">Sin Prosumidores 4.0</span>
+              </div>
+            </div>
+
+            {isGD && !results.details?.["Tasa Mun. Rosario (0.6% + 1.8%)"] && (
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700 font-medium">
+                      Si el suministro se encuentra en la ciudad de Rosario, el cálculo de los impuestos puede presentar una leve variación de aproximadamente 2% en virtud de determinadas ordenanzas municipales que resultan de aplicación en dicha jurisdicción.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {userType === UserType.EPE_NO_PROSUMIDOR_GD && (
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700 font-medium">
+                      Los reconocimientos resultan aplicables únicamente en caso de contar con Certificado MiPyME vigente
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r shadow-sm">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700 font-medium">
+                      Si el usuario no corresponde a la categoría SS (sin subsidios) del régimen de segmentación de subsidios de la EPE, las subvenciones aplicadas por el Gobierno Nacional resultan significativamente menores; en consecuencia, los ahorros estimados podrían encontrarse sobrevalorados respecto de los reales
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 mb-6 text-center">
               <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Potencia máxima de instalación</h3>
               <p className="text-3xl font-extrabold text-gray-900">
@@ -160,13 +235,13 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-center text-center">
-                <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="p-6 rounded-2xl shadow-md border-t-4 bg-orange-50 border-orange-500 flex flex-col justify-center text-center">
+                <h3 className="text-sm font-bold text-gray-900 mb-1 uppercase tracking-wider">
                   Período de recupero de la inversión en años
                 </h3>
                 <p className="text-3xl font-extrabold text-gray-900">
-                  {periodoRecupero} <span className="text-lg text-gray-400 font-bold">años</span>
+                  {periodoRecupero} <span className="text-lg text-gray-900 font-bold">años</span>
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-center text-center">
@@ -179,82 +254,48 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
               </div>
             </div>
           </>
-        )}
-
-        {isGD && !isProsumidor && !results.details?.["Tasa Mun. Rosario (0.6% + 1.8%)"] && (
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-blue-700 font-medium">
-                  Si el suministro se encuentra en la ciudad de Rosario, el cálculo de los impuestos puede presentar una leve variación de aproximadamente 2% en virtud de determinadas ordenanzas municipales que resultan de aplicación en dicha jurisdicción.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {userType === UserType.EPE_NO_PROSUMIDOR_GD && (
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-blue-700 font-medium">
-                  Los reconocimientos resultan aplicables únicamente en caso de contar con Certificado MiPyME vigente
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r shadow-sm">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-yellow-700 font-medium">
-                  Si el usuario no corresponde a la categoría SS (sin subsidios) del régimen de segmentación de subsidios de la EPE, las subvenciones aplicadas por el Gobierno Nacional resultan significativamente menores; en consecuencia, los ahorros estimados podrían encontrarse sobrevalorados respecto de los reales
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside">
-          <div className={`p-6 rounded-2xl shadow-md border-t-4 ${isProsumidor ? 'bg-violet-50 border-violet-500' : 'bg-orange-50 border-orange-500'}`}>
-            <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">{isProsumidor ? 'Tu Factura Actual' : 'Factura Estimada (Prosumidor)'}</h3>
-            <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithProsumers)}</p>
-            <span className="inline-block px-3 py-1 bg-white text-xs font-bold rounded-full shadow-sm text-gray-600 border border-gray-100">Con Prosumidores 4.0</span>
-            {!isProsumidor && results.billWithProsumers < 0 && (
-              <div className="mt-4 bg-white p-3 rounded-lg border-l-4 border-violet-500 flex items-start gap-3 shadow-sm">
-                <AlertCircle className="w-5 h-5 text-violet-600 mt-0.5" />
-                <p className="text-sm text-gray-700 font-medium">En tu próxima factura se acreditará este saldo a tu favor que se irá acumulando en los futuros consumos</p>
+        ) : (
+          <>
+            {isGD && !results.details?.["Tasa Mun. Rosario (0.6% + 1.8%)"] && (
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r shadow-sm">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700 font-medium">
+                      Si el suministro se encuentra en la ciudad de Rosario, el cálculo de los impuestos puede presentar una leve variación de aproximadamente 2% en virtud de determinadas ordenanzas municipales que resultan de aplicación en dicha jurisdicción.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-md border-t-4 border-gray-300">
-            <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">{isProsumidor ? 'Factura sin Prosumidores (Estimada)' : 'Tu Factura Actual'}</h3>
-            <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithoutProsumers)}</p>
-            <span className="inline-block px-3 py-1 bg-gray-100 text-xs font-bold rounded-full text-gray-500">Sin Prosumidores 4.0</span>
-          </div>
-        </div>
 
-        <div className="print-break-inside bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h2 className="text-lg font-medium opacity-90 uppercase tracking-widest">Ahorro Total Estimado</h2>
-            <div className="flex items-baseline gap-4 mt-2">
-              <span className="text-5xl font-extrabold">{formatCurrency(results.totalSavings)}</span>
-              <span className="text-2xl font-bold bg-white/20 px-3 py-1 rounded-lg border border-white/30">{formatPercent(results.totalSavingsPercent)}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside mb-6">
+              <div className="p-6 rounded-2xl shadow-md border-t-4 bg-violet-50 border-violet-500">
+                <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Tu Factura Actual</h3>
+                <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithProsumers)}</p>
+                <span className="inline-block px-3 py-1 bg-white text-xs font-bold rounded-full shadow-sm text-gray-600 border border-gray-100">Con Prosumidores 4.0</span>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-md border-t-4 border-gray-300">
+                <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Factura sin Prosumidores (Estimada)</h3>
+                <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithoutProsumers)}</p>
+                <span className="inline-block px-3 py-1 bg-gray-100 text-xs font-bold rounded-full text-gray-500">Sin Prosumidores 4.0</span>
+              </div>
             </div>
-          </div>
-          <Banknote className="w-20 h-20 opacity-20" />
-        </div>
+
+            <div className="print-break-inside bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-lg font-medium opacity-90 uppercase tracking-widest">Ahorro Total Estimado</h2>
+                <div className="flex items-baseline gap-4 mt-2">
+                  <span className="text-5xl font-extrabold">{formatCurrency(results.totalSavings)}</span>
+                  <span className="text-2xl font-bold bg-white/20 px-3 py-1 rounded-lg border border-white/30">{formatPercent(results.totalSavingsPercent)}</span>
+                </div>
+              </div>
+              <Banknote className="w-20 h-20 opacity-20" />
+            </div>
+          </>
+        )}
 
         <div className="print-break-inside bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200"><h3 className="font-bold text-gray-700 flex items-center gap-2"><PieIcon size={20} className="text-violet-600"/> Composición del Ahorro</h3></div>

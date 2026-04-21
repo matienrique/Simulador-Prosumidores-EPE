@@ -12,6 +12,7 @@ export interface FeedbackData {
 
 export interface GlobalStats {
   visitCount: number;
+  completaronCount: number;
   resolvedCount: number;
   notResolvedCount: number;
   lastConsultationNumber: number;
@@ -26,12 +27,12 @@ export const incrementVisitCount = async () => {
 
     if (statsSnap.exists()) {
       const data = statsSnap.data() as GlobalStats;
-      // Update: If the current count is less than 104, we seed it to 104 as requested.
       const newCount = Math.max(data.visitCount + 1, 104);
       await updateDoc(statsRef, { visitCount: newCount });
     } else {
       await setDoc(statsRef, {
-        visitCount: 104, // Start at 104 if it doesn't exist
+        visitCount: 104,
+        completaronCount: 250,
         resolvedCount: 0,
         notResolvedCount: 0,
         lastConsultationNumber: 0
@@ -39,6 +40,29 @@ export const incrementVisitCount = async () => {
     }
   } catch (error) {
     console.warn("Failed to increment visit count, operating offline or error: ", error);
+  }
+};
+
+export const incrementCompletaronCount = async () => {
+  try {
+    const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
+    const statsSnap = await getDoc(statsRef);
+
+    if (statsSnap.exists()) {
+      const data = statsSnap.data() as GlobalStats;
+      const currentVal = data.completaronCount || 250;
+      await updateDoc(statsRef, { completaronCount: currentVal + 1 });
+    } else {
+      await setDoc(statsRef, {
+        visitCount: 104,
+        completaronCount: 251,
+        resolvedCount: 0,
+        notResolvedCount: 0,
+        lastConsultationNumber: 0
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to increment completaron count, operating offline or error: ", error);
   }
 };
 
@@ -123,6 +147,7 @@ export const clearAllData = async () => {
     
     batch.set(statsRef, {
       visitCount: currentVisitCount,
+      completaronCount: 250,
       resolvedCount: 0,
       notResolvedCount: 0,
       lastConsultationNumber: 0
