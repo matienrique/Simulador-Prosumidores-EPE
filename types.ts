@@ -97,6 +97,7 @@ export interface ProsumidorData {
   taxStatus?: TaxStatus;
   totalBill: number;
   isRosario?: boolean;
+  program?: '4.0' | 'anterior';
 }
 
 export interface ProsumidorGDData {
@@ -105,6 +106,7 @@ export interface ProsumidorGDData {
   reconGSF_GD: number;
   taxStatus?: TaxStatus;
   isRosario?: boolean;
+  program?: '4.0' | 'anterior';
   cargoComercial: number;
   cargoCapSumPico: number;
   cargoCapSumFPico: number;
