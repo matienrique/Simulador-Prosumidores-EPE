@@ -238,10 +238,10 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="p-6 rounded-2xl shadow-md border-t-4 bg-orange-50 border-orange-500 flex flex-col justify-center text-center">
                 <h3 className="text-sm font-bold text-gray-900 mb-1 uppercase tracking-wider">
-                  Período de recupero de la inversión en años
+                  Período estimado de recupero de la inversión 
                 </h3>
                 <p className="text-3xl font-extrabold text-gray-900">
-                  {periodoRecupero} <span className="text-lg text-gray-900 font-bold">años</span>
+                  {periodoRecupero} <span className="text-lg text-gray-900 font-bold">años (aproximadamente)</span>
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col justify-center text-center">
