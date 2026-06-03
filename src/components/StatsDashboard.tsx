@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFeedbackList, getGlobalStats, clearAllData, FeedbackData, GlobalStats } from '../services/statsService';
+import { getFeedbackList, getGlobalStats, clearAllData, saveAppConstants, FeedbackData, GlobalStats } from '../services/statsService';
 import { ArrowLeft, Trash2, Lock, Unlock, Users, CheckCircle, XCircle, Eye, AlertTriangle, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import { NoProsumidorData, NoProsumidorCategory } from '../../types';
 import { CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS } from '../../utils/calc_v2';
@@ -51,7 +51,7 @@ const AdminDashboardPanel: React.FC<{
   const [isOpen, setIsOpen] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleUpdate = (
+  const handleUpdate = async (
     field: 'gsfUnit' | 'reconUnit',
     category: NoProsumidorCategory,
     newValStr: string
@@ -61,6 +61,12 @@ const AdminDashboardPanel: React.FC<{
 
     // Modificamos constante global 
     CALCULATOR_CONSTANTS[category][field] = val;
+
+    try {
+      await saveAppConstants(CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS);
+    } catch (err) {
+      console.error("Error saving updated variables to Firestore:", err);
+    }
 
     if (noProsumidorData && onAdminUpdate) {
       let updatedData = { ...noProsumidorData };
@@ -80,11 +86,17 @@ const AdminDashboardPanel: React.FC<{
     setRefreshKey(k => k + 1);
   };
 
-  const handleUpdateGlobal = (field: keyof typeof GLOBAL_CONSTANTS, newValStr: string) => {
+  const handleUpdateGlobal = async (field: keyof typeof GLOBAL_CONSTANTS, newValStr: string) => {
     const val = parseFloat(newValStr);
     if (isNaN(val)) return;
 
     GLOBAL_CONSTANTS[field] = val;
+
+    try {
+      await saveAppConstants(CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS);
+    } catch (err) {
+      console.error("Error saving updated variables to Firestore:", err);
+    }
 
     if (noProsumidorData && onAdminUpdate) {
       onAdminUpdate({ ...noProsumidorData });

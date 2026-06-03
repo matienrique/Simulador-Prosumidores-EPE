@@ -12,9 +12,9 @@ import StepResults from './components/StepResults_v2';
 import StepEpeNoProsumidorSelect from './components/StepEpeNoProsumidorSelect';
 import WelcomeScreen from './components/WelcomeScreen';
 import StatsDashboard from './src/components/StatsDashboard';
-import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD } from './utils/calc_v2';
+import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD, CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS } from './utils/calc_v2';
 import { MessageCircle } from 'lucide-react';
-import { incrementVisitCount, incrementCompletaronCount } from './src/services/statsService';
+import { incrementVisitCount, incrementCompletaronCount, getAppConstants } from './src/services/statsService';
 
 const initialBand = { id: '1', name: 'Última Banda', energy: 0, amount: 0 };
 
@@ -71,9 +71,29 @@ const App: React.FC = () => {
   const [noProsumidorData, setNoProsumidorData] = useState<NoProsumidorData>(initialNoProsumidorData);
   
   const [results, setResults] = useState<CalculationResult | null>(null);
+  const [configVersion, setConfigVersion] = useState<number>(0);
 
   useEffect(() => {
     incrementVisitCount();
+    
+    // Load app constants from Firestore on mount
+    const loadConfig = async () => {
+      try {
+        const config = await getAppConstants();
+        if (config) {
+          if (config.calculatorConstants) {
+            Object.assign(CALCULATOR_CONSTANTS, config.calculatorConstants);
+          }
+          if (config.globalConstants) {
+            Object.assign(GLOBAL_CONSTANTS, config.globalConstants);
+          }
+          setConfigVersion(v => v + 1);
+        }
+      } catch (err) {
+        console.warn("Could not load database configurations:", err);
+      }
+    };
+    loadConfig();
   }, []);
 
   const handleUserSelect = (type: UserType) => {
@@ -142,6 +162,7 @@ const App: React.FC = () => {
         onAdminUpdate={(newData) => {
           setNoProsumidorData(newData);
           setResults(calculateNoProsumidor(newData));
+          setConfigVersion(v => v + 1);
         }}
       />
     );

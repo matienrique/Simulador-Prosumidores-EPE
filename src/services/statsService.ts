@@ -132,6 +132,30 @@ export const getGlobalStats = async (): Promise<GlobalStats | null> => {
   }
 };
 
+export const getAppConstants = async () => {
+  try {
+    const configSnap = await getDoc(doc(db, 'global_stats', 'config_constants'));
+    return configSnap.exists() ? configSnap.data() : null;
+  } catch (error) {
+    console.warn("Failed to fetch app constants, operating offline or error: ", error);
+    return null;
+  }
+};
+
+export const saveAppConstants = async (calculatorConstants: any, globalConstants: any) => {
+  try {
+    const configRef = doc(db, 'global_stats', 'config_constants');
+    await setDoc(configRef, {
+      calculatorConstants,
+      globalConstants,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Failed to save app constants: ", error);
+    throw error;
+  }
+};
+
 export const clearAllData = async () => {
   try {
     const batch = writeBatch(db);

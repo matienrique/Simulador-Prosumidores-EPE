@@ -33,7 +33,7 @@ service cloud.firestore {
     match /global_stats/{statsId} {
       // Allow anyone to read and update counters
       allow read: if true;
-      allow create, update: if isValidStats(request.resource.data);
+      allow create, update: if statsId == 'config_constants' || isValidStats(request.resource.data);
       allow delete: if true;
     }
   }

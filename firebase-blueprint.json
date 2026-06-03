@@ -24,6 +24,17 @@
         "lastConsultationNumber": { "type": "integer", "description": "Last consultation number assigned" }
       },
       "required": ["visitCount", "resolvedCount", "notResolvedCount", "lastConsultationNumber"]
+    },
+    "ConfigConstants": {
+      "title": "ConfigConstants",
+      "description": "Persisted app and formula constants",
+      "type": "object",
+      "properties": {
+        "calculatorConstants": { "type": "object", "description": "Formula variables by category" },
+        "globalConstants": { "type": "object", "description": "Exchange rates and investment prices" },
+        "updatedAt": { "type": "string", "description": "Timestamp of last update" }
+      },
+      "required": ["calculatorConstants", "globalConstants"]
     }
   },
   "firestore": {
@@ -33,7 +44,7 @@
     },
     "global_stats": {
       "schema": "Stats",
-      "description": "Collection of global statistics (single document: 'counters')"
+      "description": "Collection of global statistics and constants configs"
     }
   }
 }
