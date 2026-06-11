@@ -303,7 +303,8 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     const sumResto = gd.consumptionTable.reduce((sum, row) => sum + (row.resto || 0), 0);
     const sumValle = gd.consumptionTable.reduce((sum, row) => sum + (row.valle || 0), 0);
     const totalImputed = sumPico + sumResto + sumValle;
-    const calculatedPotenciaMax = (totalImputed * 2) / 1629.1;
+    const formulaVal = (totalImputed * 2) / 1629.1;
+    const calculatedPotenciaMax = formulaVal > gd.contractedPower ? gd.contractedPower : formulaVal;
     const lastRow = gd.consumptionTable[5] || { pico: 0, resto: 0, valle: 0 };
     const consumoTotalRealPico = lastRow.pico;
     const consumoTotalRealResto = lastRow.resto;
