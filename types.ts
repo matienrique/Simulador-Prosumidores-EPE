@@ -74,6 +74,9 @@ export interface NoProsumidorGDInput {
   eaConsPicoPrice: number;
   eaConsRestoPrice: number;
   eaConsVallePrice: number;
+  facturadoPico: number;
+  facturadoResto: number;
+  facturadoValle: number;
   energiaReactivaAmount: number;
   subtotalEnergiaAmount: number;
   cap: number;

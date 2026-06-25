@@ -19,28 +19,33 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   // GD Specific State initialization
   const initialGDRow: ConsumptionRow = { period: '', pico: 0, resto: 0, valle: 0 };
   
-  const [gdData, setGdData] = useState<NoProsumidorGDInput>(initialData.gdData || {
-    contractedPower: 0,
-    knowsAnnualConsumption: false,
-    annualConsumption: 0,
-    // Initialize with 6 rows as requested (previously 7)
-    consumptionTable: Array(6).fill(null).map(() => ({ ...initialGDRow })),
-    cargoComercial: 0,
-    cargoCapSumPico: 0,
-    cargoCapSumFPico: 0,
-    cargoPotAdqPico: 0,
-    eaConsPicoAmount: 0,
-    eaConsRestoAmount: 0,
-    eaConsValleAmount: 0,
-    energiaReactivaAmount: 0,
-    subtotalEnergiaAmount: 0,
-    eaConsPicoPrice: 0,
-    eaConsRestoPrice: 0,
-    eaConsVallePrice: 0,
-    cap: 0,
-    ley12692: 0,
-    taxStatus: '' as TaxStatus,
-    totalToPay: 0
+  const [gdData, setGdData] = useState<NoProsumidorGDInput>(() => {
+    const base = initialData.gdData || {};
+    return {
+      contractedPower: base.contractedPower || 0,
+      knowsAnnualConsumption: base.knowsAnnualConsumption || false,
+      annualConsumption: base.annualConsumption || 0,
+      consumptionTable: base.consumptionTable || Array(6).fill(null).map(() => ({ ...initialGDRow })),
+      cargoComercial: base.cargoComercial || 0,
+      cargoCapSumPico: base.cargoCapSumPico || 0,
+      cargoCapSumFPico: base.cargoCapSumFPico || 0,
+      cargoPotAdqPico: base.cargoPotAdqPico || 0,
+      eaConsPicoAmount: base.eaConsPicoAmount || 0,
+      eaConsRestoAmount: base.eaConsRestoAmount || 0,
+      eaConsValleAmount: base.eaConsValleAmount || 0,
+      energiaReactivaAmount: base.energiaReactivaAmount || 0,
+      subtotalEnergiaAmount: base.subtotalEnergiaAmount || 0,
+      eaConsPicoPrice: base.eaConsPicoPrice || 0,
+      eaConsRestoPrice: base.eaConsRestoPrice || 0,
+      eaConsVallePrice: base.eaConsVallePrice || 0,
+      facturadoPico: base.facturadoPico || 0,
+      facturadoResto: base.facturadoResto || 0,
+      facturadoValle: base.facturadoValle || 0,
+      cap: base.cap || 0,
+      ley12692: base.ley12692 || 0,
+      taxStatus: (base.taxStatus || '') as TaxStatus,
+      totalToPay: base.totalToPay || 0
+    };
   });
 
   const isGranDemanda = formData.category === NoProsumidorCategory.GRAN_DEMANDA;
@@ -95,7 +100,23 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
 
   const handleGdNumberChange = (field: keyof NoProsumidorGDInput, val: string) => {
     const num = val === '' ? 0 : parseFloat(val);
-    setGdData(prev => ({ ...prev, [field]: Math.max(0, num) }));
+    setGdData(prev => {
+      // Allow negative values specifically for 'energiaReactivaAmount'
+      const nextValue = field === 'energiaReactivaAmount' ? num : Math.max(0, num);
+      const next = { ...prev, [field]: nextValue };
+      
+      // Auto-calculate internal Importes as per CAMBIO 1
+      if (field === 'facturadoPico' || field === 'eaConsPicoPrice') {
+        next.eaConsPicoAmount = (next.facturadoPico || 0) * (next.eaConsPicoPrice || 0);
+      }
+      if (field === 'facturadoResto' || field === 'eaConsRestoPrice') {
+        next.eaConsRestoAmount = (next.facturadoResto || 0) * (next.eaConsRestoPrice || 0);
+      }
+      if (field === 'facturadoValle' || field === 'eaConsVallePrice') {
+        next.eaConsValleAmount = (next.facturadoValle || 0) * (next.eaConsVallePrice || 0);
+      }
+      return next;
+    });
   };
 
   const getTaxInfoGD = (status: string) => {
@@ -656,54 +677,119 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 </div>
               ))}
 
-              {/* Energy with Unit Prices */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Energía Activa Consumida Pico ($)</label>
-                    <input type="number" min="0" step="0.01" value={gdData.eaConsPicoAmount || ''} onChange={(e) => handleGdNumberChange('eaConsPicoAmount', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-violet-600 mb-1">Precio unitario [$]</label>
-                    <input type="number" min="0" step="0.0001" value={gdData.eaConsPicoPrice || ''} onChange={(e) => handleGdNumberChange('eaConsPicoPrice', e.target.value)} className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 bg-white"/>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Energía Activa Consumida Resto ($)</label>
-                    <input type="number" min="0" step="0.01" value={gdData.eaConsRestoAmount || ''} onChange={(e) => handleGdNumberChange('eaConsRestoAmount', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-violet-600 mb-1">Precio unitario [$]</label>
-                    <input type="number" min="0" step="0.0001" value={gdData.eaConsRestoPrice || ''} onChange={(e) => handleGdNumberChange('eaConsRestoPrice', e.target.value)} className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 bg-white"/>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Energía Activa Consumida Valle ($)</label>
-                    <input type="number" min="0" step="0.01" value={gdData.eaConsValleAmount || ''} onChange={(e) => handleGdNumberChange('eaConsValleAmount', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-violet-600 mb-1">Precio unitario [$]</label>
-                    <input type="number" min="0" step="0.0001" value={gdData.eaConsVallePrice || ''} onChange={(e) => handleGdNumberChange('eaConsVallePrice', e.target.value)} className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 bg-white"/>
-                  </div>
+              {/* Energy Table with Facturado and Precio Unitario as per CAMBIO 1 */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm text-center border-collapse bg-white">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-700 font-bold">
+                        <th className="p-3 border border-gray-200 text-left">Concepto</th>
+                        <th className="p-3 border border-gray-200">Facturado (kWh)</th>
+                        <th className="p-3 border border-gray-200">Precio Unitario ($)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-3 border border-gray-200 text-left font-semibold text-gray-700">Horario Pico</td>
+                        <td className="p-2 border border-gray-200">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={gdData.facturadoPico || ''}
+                            onChange={(e) => handleGdNumberChange('facturadoPico', e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 text-center"
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-200">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.0001"
+                            value={gdData.eaConsPicoPrice || ''}
+                            onChange={(e) => handleGdNumberChange('eaConsPicoPrice', e.target.value)}
+                            className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 text-center bg-white"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 border border-gray-200 text-left font-semibold text-gray-700">Horario Resto</td>
+                        <td className="p-2 border border-gray-200">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={gdData.facturadoResto || ''}
+                            onChange={(e) => handleGdNumberChange('facturadoResto', e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 text-center"
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-200">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.0001"
+                            value={gdData.eaConsRestoPrice || ''}
+                            onChange={(e) => handleGdNumberChange('eaConsRestoPrice', e.target.value)}
+                            className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 text-center bg-white"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 border border-gray-200 text-left font-semibold text-gray-700">Horario Valle</td>
+                        <td className="p-2 border border-gray-200">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={gdData.facturadoValle || ''}
+                            onChange={(e) => handleGdNumberChange('facturadoValle', e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 text-center"
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-200">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.0001"
+                            value={gdData.eaConsVallePrice || ''}
+                            onChange={(e) => handleGdNumberChange('eaConsVallePrice', e.target.value)}
+                            className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 text-center bg-white"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              {[
-                { k: 'energiaReactivaAmount', l: 'Energía Reactiva' },
-                { k: 'subtotalEnergiaAmount', l: 'SUBTOTAL CONSUMO DE ENERGÍA' },
-              ].map(f => (
-                <div key={f.k}>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">{f.l} (Importe $)</label>
-                  <input
-                    type="number" min="0" step="0.01"
-                    value={gdData[f.k as keyof NoProsumidorGDInput] as number || ''}
-                    onChange={(e) => handleGdNumberChange(f.k as keyof NoProsumidorGDInput, e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"
-                  />
-                </div>
-              ))}
+              {/* Energía Reactiva with positive/negative capability and custom help text as per CAMBIO 2 */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Energía Reactiva (Importe $)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={gdData.energiaReactivaAmount || ''}
+                  onChange={(e) => handleGdNumberChange('energiaReactivaAmount', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-2 italic flex items-center gap-1">
+                  <Info size={12} /> Recargo/Bonificación por Factor de Potencia. Introduzca el valor positivo/negativo que figura en la factura.
+                </p>
+              </div>
+
+              {/* SUBTOTAL CONSUMO DE ENERGÍA */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">SUBTOTAL CONSUMO DE ENERGÍA (Importe $)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={gdData.subtotalEnergiaAmount || ''}
+                  onChange={(e) => handleGdNumberChange('subtotalEnergiaAmount', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"
+                />
+              </div>
             </div>
           </div>
 

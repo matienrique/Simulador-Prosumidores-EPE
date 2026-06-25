@@ -298,15 +298,24 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     const gd = data.gdData;
     if (!gd) throw new Error("GD Data missing");
     
-    const generacionPromedio = (gd.contractedPower * 1629.1) / 12;
-    const lastRow = gd.consumptionTable[5] || { pico: 0, resto: 0, valle: 0 };
-    const consumoTotalRealPico = lastRow.pico;
-    const consumoTotalRealResto = lastRow.resto;
-    const consumoTotalRealValle = lastRow.valle;
+    const sumPico = gd.consumptionTable.reduce((sum, row) => sum + (row.pico || 0), 0);
+    const sumResto = gd.consumptionTable.reduce((sum, row) => sum + (row.resto || 0), 0);
+    const sumValle = gd.consumptionTable.reduce((sum, row) => sum + (row.valle || 0), 0);
+    const totalImputed = sumPico + sumResto + sumValle;
+    const formulaVal = (totalImputed * 2) / 1629.1;
+    const calculatedPotenciaMax = formulaVal > gd.contractedPower ? gd.contractedPower : formulaVal;
+
+    // average generation now uses calculatedPotenciaMax (potenciaMaximaInstalacion) instead of contractedPower as per user instructions
+    const generacionPromedio = (calculatedPotenciaMax * 1629.1) / 12;
+    
+    // New calculation for consumoTotalReal as per corrective request
+    const consumoTotalRealPico = gd.facturadoPico || 0;
+    const consumoTotalRealResto = gd.facturadoResto || 0;
+    const consumoTotalRealValle = gd.facturadoValle || 0;
     const consumoTotalReal = consumoTotalRealPico + consumoTotalRealResto + consumoTotalRealValle;
     
-    const energiaGeneradaPico = Math.ceil(generacionPromedio) * 0.08;
-    const energiaGeneradaResto = Math.ceil(generacionPromedio) * 0.92;
+    const energiaGeneradaPico = Math.ceil(generacionPromedio) * 0.00;
+    const energiaGeneradaResto = Math.ceil(generacionPromedio);
     const energiaGeneradaValle = Math.ceil(generacionPromedio) * 0.0;
     
     const autoconsumoEstimado = 0.80;
@@ -320,18 +329,33 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     let energiaEntregadaResto = consumoTotalRealResto + energiaRecibidaParaResto - energiaGeneradaResto;
     let energiaEntregadaValle = consumoTotalRealValle + energiaRecibidaParaValle - energiaGeneradaValle;
     
-    if (energiaEntregadaPico < 0) { energiaEntregadaResto += Math.abs(energiaEntregadaPico); energiaEntregadaPico = 0; }
-    if (energiaEntregadaValle < 0) { energiaEntregadaResto += Math.abs(energiaEntregadaValle); energiaEntregadaValle = 0; }
-    if (energiaEntregadaResto < 0) { energiaEntregadaResto = 0; }
+    // Modified rule conditonal for energiaEntregada as per CAMBIO 4
+    if (gd.contractedPower > 300) {
+      if (
+        energiaEntregadaPico < 0 ||
+        energiaEntregadaResto < 0 ||
+        energiaEntregadaValle < 0
+      ) {
+        energiaEntregadaResto = 0;
+      }
+    }
     
-    const eaConsPicoCPGD = energiaEntregadaPico * gd.eaConsPicoPrice;
-    const eaConsRestoCPGD = energiaEntregadaResto * gd.eaConsRestoPrice;
-    const eaConsValleCPGD = energiaEntregadaValle * gd.eaConsVallePrice;
+    const energiaInyectadaPico = energiaRecibidaParaPico;
+    const energiaInyectadaResto = energiaRecibidaParaResto;
+    const energiaInyectadaValle = energiaRecibidaParaValle;
+
+    const energiaNetaPico = energiaEntregadaPico - energiaInyectadaPico;
+    const energiaNetaResto = energiaEntregadaResto - energiaInyectadaResto;
+    const energiaNetaValle = energiaEntregadaValle - energiaInyectadaValle;
+
+    const eaConsPicoCPGD = energiaNetaPico * gd.eaConsPicoPrice;
+    const eaConsRestoCPGD = energiaNetaResto * gd.eaConsRestoPrice;
+    const eaConsValleCPGD = energiaNetaValle * gd.eaConsVallePrice;
     
     const sumCargosFijos = gd.cargoComercial + gd.cargoCapSumPico + gd.cargoCapSumFPico + gd.cargoPotAdqPico;
-    const subtotalConsumoEnergiaCPGD = (eaConsPicoCPGD + eaConsRestoCPGD + eaConsValleCPGD) + sumCargosFijos - gd.energiaReactivaAmount;
+    const subtotalConsumoEnergiaCPGD = (eaConsPicoCPGD + eaConsRestoCPGD + eaConsValleCPGD) + sumCargosFijos + gd.energiaReactivaAmount;
     
-    const reconEPESF_CPGD = energiaRecibidaTotal * gd.eaConsRestoPrice;
+    const reconEPESF_CPGD = 0;
     const baseImpuestosCPGD = subtotalConsumoEnergiaCPGD - reconEPESF_CPGD;
     
     let ivaRate = 0.27; let percepcionRate = 0.03;
@@ -377,6 +401,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
       treesEquivalent: Math.round(co2 / (10/12)),
       details: { 
         "Potencia Contratada (kW)": gd.contractedPower,
+        "Calculated Potencia Max (kW)": calculatedPotenciaMax,
         "Generación Promedio (kWh)": generacionPromedio,
         "Generada Pico (kWh)": energiaGeneradaPico,
         "Generada Resto (kWh)": energiaGeneradaResto,
