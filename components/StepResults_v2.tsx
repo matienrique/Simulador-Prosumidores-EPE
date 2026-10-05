@@ -129,15 +129,32 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
 
   const isResidencial = userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL;
   const isGDUser = (userType === UserType.EPE_NO_PROSUMIDOR_GD) || isGD;
+  const isPequeñaDemandaNoProsumidor = !isProsumidor && !isGDUser && (
+    userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL ||
+    userType === UserType.EPE_NO_PROSUMIDOR_COMERCIAL ||
+    userType === UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL ||
+    userType === UserType.EPE_NO_PROSUMIDOR_ASOCIACIONES ||
+    results.type === 'NO_PROSUMIDOR'
+  );
+
   let potenciaMax = isGD ? (results.details?.["Potencia Contratada (kW)"] as number || 0) : (results.details?.["Potencia Estimada (kW)"] as number || 0);
   if (userType === UserType.EPE_NO_PROSUMIDOR_GD && results.details?.["Calculated Potencia Max (kW)"] !== undefined) {
     potenciaMax = results.details["Calculated Potencia Max (kW)"] as number;
+  }
+
+  const isPotenciaCapped = isPequeñaDemandaNoProsumidor && potenciaMax > 49;
+  if (isPotenciaCapped) {
+    potenciaMax = 49;
   }
 
   const invBase = isResidencial ? GLOBAL_CONSTANTS.inversionResidencial : GLOBAL_CONSTANTS.inversionNoResidencial;
   const inversionInicial = potenciaMax * GLOBAL_CONSTANTS.tipoCambio * invBase;
   const ahorroAnual = isGDUser ? (results.totalSavings * 12) : (results.totalSavings * 6);
   const periodoRecupero = ahorroAnual > 0 ? Math.floor(inversionInicial / ahorroAnual) : 0;
+
+  const isNegativeBill = results.billWithProsumers < 0;
+  const isPequeñaDemandaNegativeBill = isPequeñaDemandaNoProsumidor && isNegativeBill;
+  const displayBillWithProsumers = isPequeñaDemandaNegativeBill ? 0 : results.billWithProsumers;
 
   return (
     <div className="flex flex-col min-h-full">
@@ -173,12 +190,16 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
               <h3 className="text-sm font-bold text-gray-900 mb-1 uppercase tracking-wider">
                 {isProsumidor ? 'Factura actual' : 'Factura Estimada (Prosumidor)'}
               </h3>
-              <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithProsumers)}</p>
+              <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(displayBillWithProsumers)}</p>
               <span className="inline-block px-3 py-1 bg-white text-xs font-bold rounded-full shadow-sm text-gray-900 border border-gray-100">Con Prosumidores 4.0</span>
-              {results.billWithProsumers < 0 && (
+              {isNegativeBill && (
                 <div className="mt-4 bg-white p-3 rounded-lg border-l-4 border-violet-500 flex items-start gap-3 shadow-sm">
                   <AlertCircle className="w-5 h-5 text-violet-600 mt-0.5" />
-                  <p className="text-sm text-gray-900 font-bold">En tu próxima factura se acreditará este saldo a tu favor que se irá acumulando en los futuros consumos</p>
+                  <p className="text-sm text-gray-900 font-bold">
+                    {isPequeñaDemandaNoProsumidor
+                      ? `En tu próxima factura se acreditará un saldo igual a ${formatCurrency(Math.abs(results.billWithProsumers))} a tu favor que se irá acumulando en los futuros consumos`
+                      : 'En tu próxima factura se acreditará este saldo a tu favor que se irá acumulando en los futuros consumos'}
+                  </p>
                 </div>
               )}
             </div>
@@ -225,7 +246,7 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset, onSh
               <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 text-center">
                 <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Potencia máxima de instalación</h3>
                 <p className="text-3xl font-extrabold text-gray-900">
-                  {formatNumber(potenciaMax, 2)}
+                  {isPotenciaCapped ? '49' : formatNumber(potenciaMax, 2)}
                   <span className="text-lg text-gray-400 ml-2 font-bold">kW</span>
                 </p>
               </div>

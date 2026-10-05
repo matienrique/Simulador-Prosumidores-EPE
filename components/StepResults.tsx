@@ -68,6 +68,18 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
   const [isGenerating, setIsGenerating] = useState(false);
   const isProsumidor = userType === UserType.PROSUMIDOR;
   const isGD = results.type === 'GD';
+  const isGDUser = (userType === UserType.EPE_NO_PROSUMIDOR_GD) || isGD;
+  const isPequeñaDemandaNoProsumidor = !isProsumidor && !isGDUser && (
+    userType === UserType.EPE_NO_PROSUMIDOR_RESIDENCIAL ||
+    userType === UserType.EPE_NO_PROSUMIDOR_COMERCIAL ||
+    userType === UserType.EPE_NO_PROSUMIDOR_INDUSTRIAL ||
+    userType === UserType.EPE_NO_PROSUMIDOR_ASOCIACIONES ||
+    results.type === 'NO_PROSUMIDOR'
+  );
+
+  const isNegativeBill = results.billWithProsumers < 0;
+  const isPequeñaDemandaNegativeBill = isPequeñaDemandaNoProsumidor && isNegativeBill;
+  const displayBillWithProsumers = isPequeñaDemandaNegativeBill ? 0 : results.billWithProsumers;
   
   const [showDetails, setShowDetails] = useState(false);
 
@@ -112,12 +124,16 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside">
           <div className={`p-6 rounded-2xl shadow-md border-t-4 ${isProsumidor ? 'bg-violet-50 border-violet-500' : 'bg-orange-50 border-orange-500'}`}>
             <h3 className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">{isProsumidor ? 'Tu Factura Actual' : 'Factura Estimada (Prosumidor)'}</h3>
-            <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(results.billWithProsumers)}</p>
+            <p className="text-4xl font-extrabold text-gray-900 my-2">{formatCurrency(displayBillWithProsumers)}</p>
             <span className="inline-block px-3 py-1 bg-white text-xs font-bold rounded-full shadow-sm text-gray-600 border border-gray-100">Con Prosumidores 4.0</span>
-            {!isProsumidor && results.billWithProsumers < 0 && (
+            {isNegativeBill && (
               <div className="mt-4 bg-white p-3 rounded-lg border-l-4 border-violet-500 flex items-start gap-3 shadow-sm">
                 <AlertCircle className="w-5 h-5 text-violet-600 mt-0.5" />
-                <p className="text-sm text-gray-700 font-medium">En tu próxima factura se acreditará un reintegro monetario igual al valor observado.</p>
+                <p className="text-sm text-gray-700 font-medium">
+                  {isPequeñaDemandaNoProsumidor
+                    ? `En tu próxima factura se acreditará un saldo igual a ${formatCurrency(Math.abs(results.billWithProsumers))} a tu favor que se irá acumulando en los futuros consumos`
+                    : (isProsumidor ? 'En tu próxima factura se acreditará este saldo a tu favor que se irá acumulando en los futuros consumos' : 'En tu próxima factura se acreditará un reintegro monetario igual al valor observado.')}
+                </p>
               </div>
             )}
           </div>
