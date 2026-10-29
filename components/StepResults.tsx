@@ -80,6 +80,14 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
   const isNegativeBill = results.billWithProsumers < 0;
   const isPequeñaDemandaNegativeBill = isPequeñaDemandaNoProsumidor && isNegativeBill;
   const displayBillWithProsumers = isPequeñaDemandaNegativeBill ? 0 : results.billWithProsumers;
+  let displayTotalSavings = isPequeñaDemandaNegativeBill ? results.billWithoutProsumers : results.totalSavings;
+  let displayTotalSavingsPercent = isPequeñaDemandaNegativeBill ? 100 : results.totalSavingsPercent;
+
+  const isNoProsumidorGD = !isProsumidor && (userType === UserType.EPE_NO_PROSUMIDOR_GD || results.type === 'GD');
+  if (isNoProsumidorGD) {
+    displayTotalSavings = results.billWithoutProsumers - displayBillWithProsumers;
+    displayTotalSavingsPercent = results.billWithoutProsumers !== 0 ? (displayTotalSavings / results.billWithoutProsumers) * 100 : 0;
+  }
   
   const [showDetails, setShowDetails] = useState(false);
 
@@ -146,10 +154,12 @@ const StepResults: React.FC<Props> = ({ results, userType, onBack, onReset }) =>
 
         <div className="print-break-inside bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <h2 className="text-lg font-medium opacity-90 uppercase tracking-widest">Ahorro Total Estimado</h2>
+            <h2 className="text-lg font-medium opacity-90 uppercase tracking-widest">
+              {isGDUser ? 'Ahorro Total Estimado en el mes simulado' : 'Ahorro Total Estimado en el bimestre simulado'}
+            </h2>
             <div className="flex items-baseline gap-4 mt-2">
-              <span className="text-5xl font-extrabold">{formatCurrency(results.totalSavings)}</span>
-              <span className="text-2xl font-bold bg-white/20 px-3 py-1 rounded-lg border border-white/30">{formatPercent(results.totalSavingsPercent)}</span>
+              <span className="text-5xl font-extrabold">{formatCurrency(displayTotalSavings)}</span>
+              <span className="text-2xl font-bold bg-white/20 px-3 py-1 rounded-lg border border-white/30">{formatPercent(displayTotalSavingsPercent)}</span>
             </div>
           </div>
           <Banknote className="w-20 h-20 opacity-20" />

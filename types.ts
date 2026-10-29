@@ -81,8 +81,10 @@ export interface NoProsumidorGDInput {
   subtotalEnergiaAmount: number;
   cap: number;
   ley12692: number;
+  resolucion976?: number;
   taxStatus: TaxStatus | '';
   totalToPay: number;
+  aplicaLey7797?: boolean;
 }
 
 export interface ProsumidorData {
@@ -100,6 +102,7 @@ export interface ProsumidorData {
   taxStatus?: TaxStatus;
   totalBill: number;
   isRosario?: boolean;
+  aplicaLey7797?: boolean;
   program?: '4.0' | 'anterior';
 }
 
@@ -107,8 +110,10 @@ export interface ProsumidorGDData {
   capGD: number;
   leyGD: number;
   reconGSF_GD: number;
+  resolucion976?: number;
   taxStatus?: TaxStatus;
   isRosario?: boolean;
+  aplicaLey7797?: boolean;
   program?: '4.0' | 'anterior';
   cargoComercial: number;
   cargoCapSumPico: number;
@@ -147,6 +152,7 @@ export interface NoProsumidorData {
   taxStatus?: TaxStatus;
   totalBill: number;
   isRosario?: boolean;
+  aplicaLey7797?: boolean;
   gdData?: NoProsumidorGDInput;
 }
 
@@ -165,6 +171,9 @@ export interface CalculationResult {
   co2Avoided: number;
   treesEquivalent: number;
   details?: Record<string, number | string>;
+  resolucion976ConPros?: number;
+  resolucion976SinPros?: number;
+  cargoUnitarioRes976?: number;
 }
 
 // Cooperativa specific data interfaces added to resolve "missing export" errors

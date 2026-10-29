@@ -1,5 +1,8 @@
 {
   "name": "1. Simulador de ahorros para Prosumidores EPE",
   "description": "Herramienta para calcular ahorros energéticos y simular escenarios para Prosumidores y No Prosumidores en la red eléctrica.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

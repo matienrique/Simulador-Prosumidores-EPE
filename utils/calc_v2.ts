@@ -54,14 +54,15 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
   const importeConPros = totalBill;
   let importeSinPros = 0;
   let impuestosSinPros = 0;
+  const ley7797Rate = (data.aplicaLey7797 !== false) ? 0.06 : 0;
   
   if (taxStatus === TaxStatus.SUJETO_NO_CATEGORIZADO) {
     const baseImponibleSinProsumidores = subtotalSinProsumidores;
     const Impuesto_percepcion = ((baseImponibleSinProsumidores + cap) * (1 + ivaCorrespondiente)) * percepcion;
-    impuestosSinPros = (baseImponibleSinProsumidores * (ivaCorrespondiente + 0.06 + 0.015)) + (cap * (1 + ivaCorrespondiente)) + ley12692 + Impuesto_percepcion;
+    impuestosSinPros = (baseImponibleSinProsumidores * (ivaCorrespondiente + ley7797Rate + 0.015)) + (cap * (1 + ivaCorrespondiente)) + ley12692 + Impuesto_percepcion;
     importeSinPros = baseImponibleSinProsumidores + impuestosSinPros;
   } else {
-    const calculatedTaxA = (ivaCorrespondiente + 0.06 + 0.015) * subtotalSinProsumidores;
+    const calculatedTaxA = (ivaCorrespondiente + ley7797Rate + 0.015) * subtotalSinProsumidores;
     const calculatedTaxB = cap * (1 + ivaCorrespondiente);
     impuestosSinPros = calculatedTaxA + calculatedTaxB + ley12692;
     importeSinPros = subtotalSinProsumidores + impuestosSinPros;
@@ -75,9 +76,9 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
   if (taxStatus === TaxStatus.SUJETO_NO_CATEGORIZADO) {
       const baseImp = subtotalConProsumidores - reconEPE;
       const ImpPer = ((baseImp + cap) * (1 + ivaCorrespondiente)) * percepcion;
-      finalImpuestosConPros = (baseImp * (ivaCorrespondiente + 0.015 + 0.06)) + (cap * (1 + ivaCorrespondiente)) + ley12692 + ImpPer;
+      finalImpuestosConPros = (baseImp * (ivaCorrespondiente + 0.015 + ley7797Rate)) + (cap * (1 + ivaCorrespondiente)) + ley12692 + ImpPer;
   } else {
-      finalImpuestosConPros = (baseTaxCon * (ivaCorrespondiente + 0.06 + 0.015)) + (cap * (1 + ivaCorrespondiente)) + ley12692;
+      finalImpuestosConPros = (baseTaxCon * (ivaCorrespondiente + ley7797Rate + 0.015)) + (cap * (1 + ivaCorrespondiente)) + ley12692;
   }
 
   const Orden_Mun_1592_62 = isRosario ? 0.006 : 0;
@@ -144,7 +145,7 @@ export const calculateProsumidor = (data: ProsumidorData): CalculationResult => 
 
 export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult => {
   const { 
-    capGD, leyGD, reconGSF_GD, taxStatus, 
+    capGD, leyGD, reconGSF_GD, resolucion976 = 0, taxStatus, 
     cargoComercial, cargoCapSumPico, cargoCapSumFPico, cargoPotenciaPico, 
     eaConsPico, eaConsResto, eaConsValle, 
     recargoBonifFP, totalPagar, 
@@ -207,7 +208,16 @@ export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult
   const eaConsValleSinPros = pSinProsValle * energiaValleSinPros;
   
   const eaConsTotalSinPros = (cargoComercial + cargoCapSumPico + cargoCapSumFPico + cargoPotenciaPico) + eaConsPicoSinPros + eaConsRestoSinPros + eaConsValleSinPros;
-  const subtotalConsumoEnergiaSinPros = eaConsTotalSinPros - recargoBonifFP; 
+  
+  // Cálculo interno para Resolución 976
+  const resolucion976Prosumidor = Number(resolucion976) || 0;
+  const energiaNetaTotal = energiaNetaPico + energiaNetaResto + energiaNetaValle;
+  const cargoUnitarioRes976NoPros = (energiaNetaTotal !== 0) ? resolucion976Prosumidor / (energiaNetaTotal / 1000) : 0;
+
+  const consumoNoProsuTotal = energiaPicoSinPros + energiaRestoSinPros + energiaValleSinPros;
+  const calculoResolucion976NoProsu = cargoUnitarioRes976NoPros * (consumoNoProsuTotal / 1000);
+
+  const subtotalConsumoEnergiaSinPros = eaConsTotalSinPros + recargoBonifFP + calculoResolucion976NoProsu; 
   
   // Rosario Tax Logic
   const Orden_Mun_1592_62 = data.isRosario ? 0.006 : 0;
@@ -215,7 +225,8 @@ export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult
   
   const Imp_ros_sin_gd = subtotalConsumoEnergiaSinPros * (Orden_Mun_1592_62 + Orden_Mun_1618_62);
 
-  let totalImpuestosSinPros = (subtotalConsumoEnergiaSinPros * (ivaCorrespondiente + 0.06 + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
+  const ley7797Rate = (data.aplicaLey7797 !== false) ? 0.06 : 0;
+  let totalImpuestosSinPros = (subtotalConsumoEnergiaSinPros * (ivaCorrespondiente + ley7797Rate + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
   totalImpuestosSinPros += Imp_ros_sin_gd;
 
   const subtotalGeneralSinPros = subtotalConsumoEnergiaSinPros + totalImpuestosSinPros;
@@ -223,11 +234,11 @@ export const calculateProsumidorGD = (data: ProsumidorGDData): CalculationResult
 
   // RECALCULO ESCENARIO CON PROSUMIDOR
   const eaConsTotalConPros = (cargoComercial + cargoCapSumPico + cargoCapSumFPico + cargoPotenciaPico) + eaConsPicoConPros + eaConsRestoConPros + eaConsValleConPros;
-  const subtotalConsumoEnergiaConPros = eaConsTotalConPros - recargoBonifFP;
+  const subtotalConsumoEnergiaConPros = eaConsTotalConPros + recargoBonifFP + resolucion976Prosumidor;
   
   const Imp_ros_con_gd = subtotalConsumoEnergiaConPros * (Orden_Mun_1592_62 + Orden_Mun_1618_62);
 
-  let taxesPaidConPros = (subtotalConsumoEnergiaConPros * (ivaCorrespondiente + 0.06 + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
+  let taxesPaidConPros = (subtotalConsumoEnergiaConPros * (ivaCorrespondiente + ley7797Rate + 0.015 + percepcionCorrespondiente)) + leyGD + (capGD * (1 + ivaCorrespondiente + percepcionCorrespondiente));
   taxesPaidConPros += Imp_ros_con_gd;
 
   const totalPagarConPros = subtotalConsumoEnergiaConPros + taxesPaidConPros - reconGSF_GD;
@@ -355,15 +366,24 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     const sumCargosFijos = gd.cargoComercial + gd.cargoCapSumPico + gd.cargoCapSumFPico + gd.cargoPotAdqPico;
     const subtotalConsumoEnergiaCPGD = (eaConsPicoCPGD + eaConsRestoCPGD + eaConsValleCPGD) + sumCargosFijos + gd.energiaReactivaAmount;
     
+    // Cálculo interno Resolución 976
+    const resolucion976NoProsumidor = Number(gd.resolucion976) || 0;
+    const consumoNoProsuTotal = (gd.facturadoPico || 0) + (gd.facturadoResto || 0) + (gd.facturadoValle || 0);
+    const cargoUnitarioRes976Prosu = (consumoNoProsuTotal !== 0) ? resolucion976NoProsumidor / (consumoNoProsuTotal / 1000) : 0;
+
+    const consumoNetoProsuTotal = energiaNetaPico + energiaNetaResto + energiaNetaValle;
+    const calculoResolucion976Prosu = cargoUnitarioRes976Prosu * (consumoNetoProsuTotal / 1000);
+
     const reconEPESF_CPGD = 0;
-    const baseImpuestosCPGD = subtotalConsumoEnergiaCPGD - reconEPESF_CPGD;
+    const baseImpuestosCPGD = subtotalConsumoEnergiaCPGD - reconEPESF_CPGD + calculoResolucion976Prosu;
     
     let ivaRate = 0.27; let percepcionRate = 0.03;
     if (gd.taxStatus === 'Responsable Inscripto') { ivaRate = 0.27; percepcionRate = 0.03; }
     else if (gd.taxStatus === 'Responsable Inscripto Agente Percepción') { ivaRate = 0.27; percepcionRate = 0.0; }
     else if (gd.taxStatus === 'Exento') { ivaRate = 0.21; percepcionRate = 0.0; }
     
-    const totalImpuestosCPGD = (ivaRate + 0.06 + 0.015 + percepcionRate) * baseImpuestosCPGD + (gd.cap * (1 + ivaRate + percepcionRate)) + gd.ley12692;
+    const ley7797Rate = ((gd.aplicaLey7797 ?? data.aplicaLey7797) !== false) ? 0.06 : 0;
+    const totalImpuestosCPGD = (ivaRate + ley7797Rate + 0.015 + percepcionRate) * baseImpuestosCPGD + (gd.cap * (1 + ivaRate + percepcionRate)) + gd.ley12692;
     const reconGSF = (energiaGeneradaResto + energiaGeneradaPico + energiaGeneradaValle) * CALCULATOR_CONSTANTS[NoProsumidorCategory.GRAN_DEMANDA].gsfUnit;
     const totalPagarCPGD = baseImpuestosCPGD + totalImpuestosCPGD - reconGSF;
     
@@ -371,7 +391,9 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     const ahorroReconGSF = reconGSF;
     const ahorroAutoconsumo = gd.subtotalEnergiaAmount - subtotalConsumoEnergiaCPGD; 
     const ahorroImpuestos = (gd.totalToPay - gd.subtotalEnergiaAmount) - totalImpuestosCPGD;
-    const ahorroTotal = ahorroReconEPE + ahorroReconGSF + ahorroAutoconsumo + ahorroImpuestos;
+    // Ahorro total estimado = Tu factura actual - Factura estimada (Prosumidor)
+    const ahorroTotal = gd.totalToPay - totalPagarCPGD;
+    const ahorroTotalPercent = safeDiv(ahorroTotal, gd.totalToPay) * 100;
     
     const co2 = 0.2306 * (energiaGeneradaResto + energiaGeneradaValle + energiaGeneradaPico);
     const energiaGen = energiaGeneradaResto + energiaGeneradaValle + energiaGeneradaPico;
@@ -389,7 +411,7 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
       billWithProsumers: totalPagarCPGD,
       billWithoutProsumers: gd.totalToPay,
       totalSavings: ahorroTotal,
-      totalSavingsPercent: safeDiv(ahorroTotal, gd.totalToPay) * 100,
+      totalSavingsPercent: ahorroTotalPercent,
       savingsConsumption: ahorroAutoconsumo,
       savingsTax: ahorroImpuestos,
       savingsRecon: ahorroReconEPE + ahorroReconGSF,
@@ -416,6 +438,8 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
         "Reconocimiento GSF ($)": reconGSF,
         "Factura Simulada ($)": totalPagarCPGD,
         "Factura Actual ($)": gd.totalToPay,
+        "Resolución 976 No Prosu ($)": resolucion976NoProsumidor,
+        "Resolución 976 Prosu ($)": calculoResolucion976Prosu,
         "Ahorro Recon EPE ($)": ahorroReconEPE,
         "Ahorro Recon GSF ($)": ahorroReconGSF,
         "Ahorro Autoconsumo ($)": ahorroAutoconsumo,
@@ -443,7 +467,11 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   const subtotalBasicoSinPros = bands.reduce((sum, b) => sum + b.amount, 0) + serviceQuota;
   const importeFacturaSinPros = totalBill;
   const impuestosSinPros = importeFacturaSinPros - subtotalBasicoSinPros;
-  const sumHistory = consumptionHistory.reduce((a, b) => a + b, 0);
+  
+  // Para el cálculo de la potencia, el importe escrito en consumo total toma el lugar del primer bimestre (BIM1).
+  // Se toman los bimestres del 2 al 6 más el consumo total, sin tomar el consumo del bimestre 1.
+  const bimestres2a6 = (consumptionHistory.slice(1, 6) || []).reduce((a, b) => a + (Number(b) || 0), 0);
+  const sumHistory = (Number(totalConsumption) || 0) + bimestres2a6;
   const estimacionPotenciaMax = sumHistory / 1629;
   const generacionPromedio = estimacionPotenciaMax * (1629 / 6);
   const energiaGenerada = Math.ceil(generacionPromedio);
@@ -471,7 +499,8 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   const Orden_Mun_1618_62 = isRosarioApplicable ? 0.018 : 0;
   const Imp_ros_con = (baseImponible && !isNaN(baseImponible)) ? baseImponible * (Orden_Mun_1592_62 + Orden_Mun_1618_62) : 0;
 
-  let impuestosConPros = (baseImponible * (IVA_correspondiente + 0.06 + 0.015)) + (cap * (1 + IVA_correspondiente)) + ley12692 + Percepcion_correspondiente;
+  const ley7797Rate = (data.aplicaLey7797 !== false) ? 0.06 : 0;
+  let impuestosConPros = (baseImponible * (IVA_correspondiente + ley7797Rate + 0.015)) + (cap * (1 + IVA_correspondiente)) + ley12692 + Percepcion_correspondiente;
   
   impuestosConPros = impuestosConPros + Imp_ros_con;
 

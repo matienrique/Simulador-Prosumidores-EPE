@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ProsumidorData, Band, TaxStatus } from '../types';
 import { Plus, Trash2, Info, AlertCircle } from 'lucide-react';
 import Footer from './Footer';
+import InvoiceScanner from './InvoiceScanner';
 
 interface Props {
   initialData: ProsumidorData;
@@ -26,6 +27,48 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
       program: prog,
       reconGSF: prog === 'anterior' ? 0 : prev.reconGSF 
     }));
+  };
+
+  const handleInvoiceDataExtracted = (data: any) => {
+    const prog = data.program === 'anterior' ? 'anterior' : '4.0';
+    setProgram(prog);
+
+    setFormData(prev => {
+      let bands = prev.bands;
+      if (data.bands && Array.isArray(data.bands) && data.bands.length > 0) {
+        bands = data.bands.map((b: any, index: number) => ({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + index),
+          name: `Banda ${index + 1}`,
+          energy: typeof b.energy === 'number' ? b.energy : 0,
+          amount: typeof b.amount === 'number' ? b.amount : 0,
+        }));
+      }
+
+      let taxStatus = prev.taxStatus;
+      if (data.taxStatus && Object.values(TaxStatus).includes(data.taxStatus as TaxStatus)) {
+        taxStatus = data.taxStatus as TaxStatus;
+      }
+
+      return {
+        ...prev,
+        program: prog,
+        eg: typeof data.eg === 'number' && data.eg > 0 ? data.eg : prev.eg,
+        ee: typeof data.ee === 'number' && data.ee > 0 ? data.ee : prev.ee,
+        er: typeof data.er === 'number' && data.er > 0 ? data.er : prev.er,
+        serviceQuota: typeof data.serviceQuota === 'number' && data.serviceQuota > 0 ? data.serviceQuota : prev.serviceQuota,
+        bands,
+        reconEPE: typeof data.reconEPE === 'number' ? data.reconEPE : prev.reconEPE,
+        reconGSF: prog === 'anterior' ? 0 : (typeof data.reconGSF === 'number' ? data.reconGSF : prev.reconGSF),
+        cap: typeof data.cap === 'number' ? data.cap : prev.cap,
+        ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
+        totalBill: typeof data.totalBill === 'number' && data.totalBill > 0 ? data.totalBill : prev.totalBill,
+        isRosario: typeof data.isRosario === 'boolean' ? data.isRosario : prev.isRosario,
+        aplicaLey7797: typeof data.aplicaLey7797 === 'boolean' 
+          ? data.aplicaLey7797 
+          : (typeof data.ley7797 === 'number' ? data.ley7797 > 0 : false),
+        taxStatus,
+      };
+    });
   };
 
   // Handlers for basic inputs
@@ -108,7 +151,10 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
     <div className="flex flex-col min-h-full">
     <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in flex-grow">
       
-      {/* Program Selection - MUST be first */}
+      {/* OCR Scanner for Prosumidor Invoices */}
+      <InvoiceScanner onDataExtracted={handleInvoiceDataExtracted} />
+
+      {/* Program Selection */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Selección de Programa</h3>
         <div className="flex flex-col sm:flex-row gap-4">
@@ -344,6 +390,16 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
                     </p>
                   </div>
                 )}
+
+                <label className="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.aplicaLey7797 ?? true}
+                    onChange={(e) => handleChange('aplicaLey7797', e.target.checked)}
+                    className="w-5 h-5 text-violet-600 focus:ring-violet-500 border-gray-300 rounded"
+                  />
+                  <span className="text-gray-700 font-medium">Aplica la Ley N° 7797</span>
+                </label>
               </div>
 
               <label className={labelStyle}>¿Cuál es tu condición fiscal? <span className="text-red-500">*</span></label>

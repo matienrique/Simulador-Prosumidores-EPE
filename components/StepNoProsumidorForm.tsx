@@ -5,6 +5,8 @@ import { Plus, Trash2, Info, Factory, Calendar, AlertCircle, Construction } from
 import { formatPercent, formatCurrency } from '../utils/format';
 import { CALCULATOR_CONSTANTS } from '../utils/calc_v2';
 import Footer from './Footer';
+import InvoiceScannerNoPros from './InvoiceScannerNoPros';
+import InvoiceScannerNoProsGD from './InvoiceScannerNoProsGD';
 
 interface Props {
   initialData: NoProsumidorData;
@@ -43,8 +45,10 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
       facturadoValle: base.facturadoValle || 0,
       cap: base.cap || 0,
       ley12692: base.ley12692 || 0,
+      resolucion976: base.resolucion976 || 0,
       taxStatus: (base.taxStatus || '') as TaxStatus,
-      totalToPay: base.totalToPay || 0
+      totalToPay: base.totalToPay || 0,
+      aplicaLey7797: base.aplicaLey7797 ?? true
     };
   });
 
@@ -60,6 +64,16 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   const labelStyle = isGranDemanda ? labelStyleViolet : labelStyleOrange;
 
   // --- GD UTILS ---
+  const truncateTo4Decimals = (val: number | string | undefined | null): string => {
+    if (val === undefined || val === null || val === '') return '';
+    const str = String(val).replace(',', '.');
+    if (str.includes('.')) {
+      const [intPart, decPart] = str.split('.');
+      return `${intPart}.${decPart.slice(0, 4)}`;
+    }
+    return str;
+  };
+
   const incrementMonth = (period: string): string => {
     if (!period || !period.includes('/')) return '';
     const [monthStr, yearStr] = period.split('/');
@@ -99,7 +113,11 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   };
 
   const handleGdNumberChange = (field: keyof NoProsumidorGDInput, val: string) => {
-    const num = val === '' ? 0 : parseFloat(val);
+    let rawVal = val;
+    if (field === 'eaConsPicoPrice' || field === 'eaConsRestoPrice' || field === 'eaConsVallePrice') {
+      rawVal = truncateTo4Decimals(val);
+    }
+    const num = rawVal === '' ? 0 : parseFloat(rawVal);
     setGdData(prev => {
       // Allow negative values specifically for 'energiaReactivaAmount'
       const nextValue = field === 'energiaReactivaAmount' ? num : Math.max(0, num);
@@ -130,6 +148,110 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
         return "IVA aplicable: 21%";
       default: return null;
     }
+  };
+
+  const handleNoProsInvoiceDataExtracted = (data: any) => {
+    setFormData(prev => {
+      let bands = prev.bands;
+      if (data.bands && Array.isArray(data.bands) && data.bands.length > 0) {
+        bands = data.bands.map((b: any, index: number) => ({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + index),
+          name: `Banda ${index + 1}`,
+          energy: typeof b.energy === 'number' ? b.energy : 0,
+          amount: typeof b.amount === 'number' ? b.amount : 0,
+        }));
+      }
+
+      let taxStatus = prev.taxStatus;
+      if (data.taxStatus && Object.values(TaxStatus).includes(data.taxStatus as TaxStatus)) {
+        taxStatus = data.taxStatus as TaxStatus;
+      }
+
+      let consumptionHistory = prev.consumptionHistory;
+      if (data.consumptionHistory && Array.isArray(data.consumptionHistory) && data.consumptionHistory.length === 6) {
+        consumptionHistory = data.consumptionHistory.map((val: any) => (typeof val === 'number' ? Math.max(0, val) : 0));
+      }
+
+      return {
+        ...prev,
+        totalConsumption: typeof data.totalConsumption === 'number' && data.totalConsumption > 0 ? data.totalConsumption : prev.totalConsumption,
+        consumptionHistory,
+        serviceQuota: typeof data.serviceQuota === 'number' && data.serviceQuota > 0 ? data.serviceQuota : prev.serviceQuota,
+        bands,
+        cap: typeof data.cap === 'number' ? data.cap : prev.cap,
+        ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
+        totalBill: typeof data.totalBill === 'number' && data.totalBill > 0 ? data.totalBill : prev.totalBill,
+        isRosario: typeof data.isRosario === 'boolean' ? data.isRosario : prev.isRosario,
+        aplicaLey7797: typeof data.aplicaLey7797 === 'boolean' 
+          ? data.aplicaLey7797 
+          : (typeof data.ley7797 === 'number' ? data.ley7797 > 0 : false),
+        taxStatus,
+      };
+    });
+  };
+
+  const handleNoProsGDInvoiceDataExtracted = (data: any) => {
+    setGdData(prev => {
+      let taxStatus = prev.taxStatus;
+      if (data.taxStatus) {
+        taxStatus = data.taxStatus as TaxStatus;
+      }
+
+      let consumptionTable = prev.consumptionTable;
+      if (data.consumptionTable && Array.isArray(data.consumptionTable) && data.consumptionTable.length > 0) {
+        consumptionTable = data.consumptionTable.map((row: any, idx: number) => ({
+          period: row.period || prev.consumptionTable[idx]?.period || '',
+          pico: typeof row.pico === 'number' ? Math.max(0, row.pico) : 0,
+          resto: typeof row.resto === 'number' ? Math.max(0, row.resto) : 0,
+          valle: typeof row.valle === 'number' ? Math.max(0, row.valle) : 0,
+        }));
+        while (consumptionTable.length < 6) {
+          consumptionTable.push({ period: '', pico: 0, resto: 0, valle: 0 });
+        }
+      }
+
+      const parseTruncated4 = (val: any) => {
+        if (typeof val !== 'number' && typeof val !== 'string') return 0;
+        const s = truncateTo4Decimals(val);
+        return s === '' ? 0 : parseFloat(s);
+      };
+      const facturadoPico = typeof data.facturadoPico === 'number' ? data.facturadoPico : prev.facturadoPico;
+      const eaConsPicoPrice = typeof data.eaConsPicoPrice === 'number' ? parseTruncated4(data.eaConsPicoPrice) : prev.eaConsPicoPrice;
+      const facturadoResto = typeof data.facturadoResto === 'number' ? data.facturadoResto : prev.facturadoResto;
+      const eaConsRestoPrice = typeof data.eaConsRestoPrice === 'number' ? parseTruncated4(data.eaConsRestoPrice) : prev.eaConsRestoPrice;
+      const facturadoValle = typeof data.facturadoValle === 'number' ? data.facturadoValle : prev.facturadoValle;
+      const eaConsVallePrice = typeof data.eaConsVallePrice === 'number' ? parseTruncated4(data.eaConsVallePrice) : prev.eaConsVallePrice;
+      const energiaReactivaAmount = typeof data.energiaReactivaAmount === 'number' ? data.energiaReactivaAmount : prev.energiaReactivaAmount;
+
+      return {
+        ...prev,
+        contractedPower: typeof data.contractedPower === 'number' && data.contractedPower > 0 ? data.contractedPower : prev.contractedPower,
+        consumptionTable,
+        cargoComercial: typeof data.cargoComercial === 'number' ? data.cargoComercial : prev.cargoComercial,
+        cargoCapSumPico: typeof data.cargoCapSumPico === 'number' ? data.cargoCapSumPico : prev.cargoCapSumPico,
+        cargoCapSumFPico: typeof data.cargoCapSumFPico === 'number' ? data.cargoCapSumFPico : prev.cargoCapSumFPico,
+        cargoPotAdqPico: typeof data.cargoPotAdqPico === 'number' ? data.cargoPotAdqPico : prev.cargoPotAdqPico,
+        facturadoPico,
+        eaConsPicoPrice,
+        eaConsPicoAmount: (facturadoPico || 0) * (eaConsPicoPrice || 0),
+        facturadoResto,
+        eaConsRestoPrice,
+        eaConsRestoAmount: (facturadoResto || 0) * (eaConsRestoPrice || 0),
+        facturadoValle,
+        eaConsVallePrice,
+        eaConsValleAmount: (facturadoValle || 0) * (eaConsVallePrice || 0),
+        energiaReactivaAmount,
+        subtotalEnergiaAmount: typeof data.subtotalEnergiaAmount === 'number' ? data.subtotalEnergiaAmount : prev.subtotalEnergiaAmount,
+        cap: typeof data.cap === 'number' ? data.cap : prev.cap,
+        ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
+        resolucion976: typeof data.resolucion976 === 'number' ? data.resolucion976 : prev.resolucion976,
+        taxStatus,
+        totalToPay: typeof data.totalToPay === 'number' && data.totalToPay > 0 ? data.totalToPay : prev.totalToPay,
+        aplicaLey7797: typeof data.aplicaLey7797 === 'boolean' 
+          ? data.aplicaLey7797 
+          : (typeof data.ley7797 === 'number' ? data.ley7797 > 0 : false),
+      };
+    });
   };
 
   // --- STANDARD FORM HANDLERS ---
@@ -243,7 +365,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid()) {
-      const payload = isGranDemanda ? { ...formData, gdData } : formData;
+      const payload = isGranDemanda ? { ...formData, aplicaLey7797: gdData.aplicaLey7797 ?? true, gdData: { ...gdData, aplicaLey7797: gdData.aplicaLey7797 ?? true } } : formData;
       onSubmit(payload);
     }
   };
@@ -276,6 +398,13 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
     <div className="flex flex-col min-h-full">
     <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in flex-grow">
       
+      {/* OCR Scanner for No Prosumidor */}
+      {isGranDemanda ? (
+        <InvoiceScannerNoProsGD onDataExtracted={handleNoProsGDInvoiceDataExtracted} />
+      ) : (
+        <InvoiceScannerNoPros onDataExtracted={handleNoProsInvoiceDataExtracted} />
+      )}
+
       {/* 1. Category Selection */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className={`text-lg font-semibold mb-4 border-b pb-2 ${isGranDemanda ? 'text-violet-800 border-violet-100' : 'text-gray-800 border-orange-100'}`}>Perfil de Usuario</h3>
@@ -394,6 +523,20 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 </span>
               </div>
             )}
+
+            {/* Ley 7797 Checkbox */}
+            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
+              <input
+                type="checkbox"
+                id="aplicaLey7797Comercial"
+                checked={formData.aplicaLey7797 ?? true}
+                onChange={(e) => handleChange('aplicaLey7797', e.target.checked)}
+                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label htmlFor="aplicaLey7797Comercial" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                Aplica la Ley N° 7797
+              </label>
+            </div>
 
             {/* A.2.1 Condición fiscal */}
             <div className="mb-6">
@@ -706,7 +849,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                             type="number"
                             min="0"
                             step="0.0001"
-                            value={gdData.eaConsPicoPrice || ''}
+                            value={gdData.eaConsPicoPrice ? truncateTo4Decimals(gdData.eaConsPicoPrice) : ''}
                             onChange={(e) => handleGdNumberChange('eaConsPicoPrice', e.target.value)}
                             className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 text-center bg-white"
                           />
@@ -729,7 +872,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                             type="number"
                             min="0"
                             step="0.0001"
-                            value={gdData.eaConsRestoPrice || ''}
+                            value={gdData.eaConsRestoPrice ? truncateTo4Decimals(gdData.eaConsRestoPrice) : ''}
                             onChange={(e) => handleGdNumberChange('eaConsRestoPrice', e.target.value)}
                             className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 text-center bg-white"
                           />
@@ -752,7 +895,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                             type="number"
                             min="0"
                             step="0.0001"
-                            value={gdData.eaConsVallePrice || ''}
+                            value={gdData.eaConsVallePrice ? truncateTo4Decimals(gdData.eaConsVallePrice) : ''}
                             onChange={(e) => handleGdNumberChange('eaConsVallePrice', e.target.value)}
                             className="w-full p-2 border border-violet-300 rounded focus:ring-1 focus:ring-violet-500 text-center bg-white"
                           />
@@ -774,7 +917,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                   className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-2 italic flex items-center gap-1">
-                  <Info size={12} /> Recargo/Bonificación por Factor de Potencia. Introduzca el valor positivo/negativo que figura en la factura.
+                  <Info size={12} /> Recargo/Bonificación por Factor de Potencia. Si en la factura figura con signo menos (-) a la derecha, es una bonificación y debe ingresarse con valor negativo.
                 </p>
               </div>
 
@@ -796,6 +939,20 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* A.4 Detalle de Facturación */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 className="text-lg font-semibold text-violet-800 mb-4 border-b pb-2 border-violet-100">Detalle de Facturación</h3>
+            
+            {/* Ley 7797 Checkbox */}
+            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
+              <input
+                type="checkbox"
+                id="aplicaLey7797GD"
+                checked={gdData.aplicaLey7797 ?? true}
+                onChange={(e) => setGdData(p => ({ ...p, aplicaLey7797: e.target.checked }))}
+                className="w-5 h-5 text-violet-600 focus:ring-violet-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label htmlFor="aplicaLey7797GD" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                Aplica la Ley N° 7797
+              </label>
+            </div>
             
             <div className="mb-6">
               <label className={labelStyle}>¿Cuál es tu condición fiscal? <span className="text-red-500">*</span></label>
@@ -836,6 +993,16 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                   onChange={(e) => handleGdNumberChange('ley12692', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
+              </div>
+              <div>
+                <label className={labelStyle}>Resolución 976 </label>
+                <input
+                  type="number" min="0" step="0.01"
+                  value={gdData.resolucion976 || ''}
+                  onChange={(e) => handleGdNumberChange('resolucion976', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">Completa el monto facturado si aparece en tu factura</p>
               </div>
             </div>
 
@@ -936,6 +1103,20 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 </span>
               </div>
             )}
+
+            {/* Ley 7797 Checkbox */}
+            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
+              <input
+                type="checkbox"
+                id="aplicaLey7797Residencial"
+                checked={formData.aplicaLey7797 ?? true}
+                onChange={(e) => handleChange('aplicaLey7797', e.target.checked)}
+                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label htmlFor="aplicaLey7797Residencial" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                Aplica la Ley N° 7797
+              </label>
+            </div>
 
             {/* A.2.1 Condición fiscal */}
             <div className="mb-6">
@@ -1154,6 +1335,20 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 </span>
               </div>
             )}
+
+            {/* Ley 7797 Checkbox */}
+            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
+              <input
+                type="checkbox"
+                id="aplicaLey7797Industrial"
+                checked={formData.aplicaLey7797 ?? true}
+                onChange={(e) => handleChange('aplicaLey7797', e.target.checked)}
+                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label htmlFor="aplicaLey7797Industrial" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                Aplica la Ley N° 7797
+              </label>
+            </div>
 
             {/* A.2.1 Condición fiscal */}
             <div className="mb-6">

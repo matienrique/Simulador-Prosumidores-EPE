@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getFeedbackList, getGlobalStats, clearAllData, saveAppConstants, FeedbackData, GlobalStats } from '../services/statsService';
-import { ArrowLeft, Trash2, Lock, Unlock, Users, CheckCircle, XCircle, Eye, AlertTriangle, Settings, ChevronUp, ChevronDown } from 'lucide-react';
+import { getFeedbackList, getGlobalStats, clearAllData, saveAppConstants, FeedbackData, GlobalStats, getSimulationList, SimulationData } from '../services/statsService';
+import { ArrowLeft, Trash2, Lock, Unlock, Users, CheckCircle, XCircle, Eye, AlertTriangle, Settings, ChevronUp, ChevronDown, TrendingUp } from 'lucide-react';
 import { NoProsumidorData, NoProsumidorCategory } from '../../types';
 import { CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS } from '../../utils/calc_v2';
+import { formatCurrency, formatPercent } from '../../utils/format';
 
 interface Props {
   onBack: () => void;
@@ -202,10 +203,12 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackData[]>([]);
+  const [simulations, setSimulations] = useState<SimulationData[]>([]);
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isAhorrosOpen, setIsAhorrosOpen] = useState(true);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,12 +229,14 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [feedbackData, statsData] = await Promise.all([
+      const [feedbackData, statsData, simulationData] = await Promise.all([
         getFeedbackList(),
-        getGlobalStats()
+        getGlobalStats(),
+        getSimulationList()
       ]);
       setFeedback(feedbackData);
       setStats(statsData);
+      setSimulations(simulationData);
     } catch (err) {
       console.error("Error fetching stats:", err);
       setError("Error al cargar los datos");
@@ -371,6 +376,63 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
               </div>
             </div>
 
+            {/* Tabla de Ahorros (Lista desplegable) */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <button 
+                onClick={() => setIsAhorrosOpen(!isAhorrosOpen)}
+                className="w-full px-6 py-4 border-b border-transparent bg-gray-50/50 flex items-center justify-between hover:bg-gray-100/50 transition-colors"
+                style={{ borderBottomColor: isAhorrosOpen ? '#e5e7eb' : 'transparent' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-black text-gray-800 uppercase tracking-wider text-sm">Tabla de ahorros</h3>
+                  <span className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-0.5 rounded-full ml-1">
+                    {simulations.length}
+                  </span>
+                </div>
+                {isAhorrosOpen ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
+              </button>
+
+              {isAhorrosOpen && (
+                <div className="overflow-x-auto animate-fade-in">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-400 text-xs font-black uppercase tracking-widest">
+                        <th className="px-6 py-4 border-b">Número</th>
+                        <th className="px-6 py-4 border-b">Fecha</th>
+                        <th className="px-6 py-4 border-b">Tipo de Usuario</th>
+                        <th className="px-6 py-4 border-b">Ahorro ($)</th>
+                        <th className="px-6 py-4 border-b">Ahorro (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      {simulations.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-10 text-center text-gray-400 italic">No hay simulaciones registradas aún</td>
+                        </tr>
+                      ) : (
+                        simulations.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 border-b font-bold text-gray-600">{item.number}</td>
+                            <td className="px-6 py-4 border-b text-gray-500">{item.date}</td>
+                            <td className="px-6 py-4 border-b font-medium text-gray-700">{item.userType}</td>
+                            <td className="px-6 py-4 border-b font-bold text-emerald-600">
+                              {formatCurrency(item.ahorroPesos)}
+                            </td>
+                            <td className="px-6 py-4 border-b font-bold text-violet-600">
+                              {formatPercent(item.ahorroPorcentaje)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
             {/* Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
@@ -432,7 +494,7 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
                 <AlertTriangle size={40} />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-2">¿Seguro que desea borrar los datos?</h3>
-              <p className="text-gray-500 text-sm mb-8">Esta acción eliminará todos los registros de feedback y reiniciará los contadores. Esta acción no se puede deshacer.</p>
+              <p className="text-gray-500 text-sm mb-8">Esta acción eliminará todos los registros de feedback, simulaciones y reiniciará los contadores. Esta acción no se puede deshacer.</p>
               <div className="flex gap-3 w-full">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}

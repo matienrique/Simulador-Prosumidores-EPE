@@ -11,6 +11,15 @@ service cloud.firestore {
              (!('observations' in data) || data.observations is string);
     }
 
+    function isValidSimulation(data) {
+      return data.keys().hasAll(['number', 'date', 'userType', 'ahorroPesos', 'ahorroPorcentaje']) &&
+             data.number is int &&
+             data.date is string &&
+             data.userType is string &&
+             (data.ahorroPesos is int || data.ahorroPesos is float) &&
+             (data.ahorroPorcentaje is int || data.ahorroPorcentaje is float);
+    }
+
     function isValidStats(data) {
       return data.keys().hasAll(['visitCount', 'resolvedCount', 'notResolvedCount', 'lastConsultationNumber']) &&
              data.visitCount is int &&
@@ -24,6 +33,16 @@ service cloud.firestore {
       // Allow anyone to create feedback
       allow create: if isValidFeedback(request.resource.data);
       // Allow anyone to read feedback (UI will handle password protection)
+      allow read: if true;
+      // Allow anyone to update/delete (for the "Borrar datos" feature)
+      allow update, delete: if true;
+    }
+
+    // Savings simulations collection
+    match /tabla_ahorros/{simulationId} {
+      // Allow anyone to record simulations
+      allow create: if isValidSimulation(request.resource.data);
+      // Allow anyone to read simulations (UI will handle password protection)
       allow read: if true;
       // Allow anyone to update/delete (for the "Borrar datos" feature)
       allow update, delete: if true;

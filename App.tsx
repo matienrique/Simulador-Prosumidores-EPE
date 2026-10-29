@@ -14,7 +14,7 @@ import WelcomeScreen from './components/WelcomeScreen';
 import StatsDashboard from './src/components/StatsDashboard';
 import { calculateProsumidor, calculateNoProsumidor, calculateProsumidorGD, CALCULATOR_CONSTANTS, GLOBAL_CONSTANTS } from './utils/calc_v2';
 import { MessageCircle } from 'lucide-react';
-import { incrementVisitCount, incrementCompletaronCount, getAppConstants } from './src/services/statsService';
+import { incrementVisitCount, incrementCompletaronCount, getAppConstants, saveSimulation } from './src/services/statsService';
 
 const initialBand = { id: '1', name: 'Última Banda', energy: 0, amount: 0 };
 
@@ -32,11 +32,12 @@ const initialProsumidorData: ProsumidorData = {
   reconGSF: 0,
   taxStatus: undefined,
   totalBill: 0,
-  isRosario: false
+  isRosario: false,
+  aplicaLey7797: true
 };
 
 const initialProsumidorGDData: ProsumidorGDData = {
-  capGD: 0, leyGD: 0, reconGSF_GD: 0,
+  capGD: 0, leyGD: 0, reconGSF_GD: 0, resolucion976: 0,
   cargoComercial: 0, cargoCapSumPico: 0, cargoCapSumFPico: 0, cargoPotenciaPico: 0,
   eaConsPico: 0, eaConsResto: 0, eaConsValle: 0,
   recargoBonifFP: 0, eaConsTotal: 0, 
@@ -44,7 +45,9 @@ const initialProsumidorGDData: ProsumidorGDData = {
   entPico: 0, entResto: 0, entValle: 0,
   recPico: 0, recResto: 0, recValle: 0,
   genPico: 0, genResto: 0, genValle: 0,
-  precioUnitarioPico: 0, precioUnitarioResto: 0, precioUnitarioValle: 0
+  precioUnitarioPico: 0, precioUnitarioResto: 0, precioUnitarioValle: 0,
+  isRosario: false,
+  aplicaLey7797: true
 };
 
 const initialNoProsumidorData: NoProsumidorData = {
@@ -56,7 +59,8 @@ const initialNoProsumidorData: NoProsumidorData = {
   cap: 0,
   ley12692: 0,
   totalBill: 0,
-  isRosario: false
+  isRosario: false,
+  aplicaLey7797: true
 };
 
 const App: React.FC = () => {
@@ -116,23 +120,30 @@ const App: React.FC = () => {
 
   const handleProsumidorSubmit = (data: ProsumidorData) => {
     setProsumidorData(data);
-    setResults(calculateProsumidor(data));
+    const res = calculateProsumidor(data);
+    setResults(res);
     setStep(3);
     incrementCompletaronCount();
+    saveSimulation(UserType.PROSUMIDOR, false, res);
   };
 
   const handleProsumidorGDSubmit = (data: ProsumidorGDData) => {
     setProsumidorGDData(data);
-    setResults(calculateProsumidorGD(data));
+    const res = calculateProsumidorGD(data);
+    setResults(res);
     setStep(3);
     incrementCompletaronCount();
+    saveSimulation(UserType.PROSUMIDOR, true, res);
   };
 
   const handleNoProsumidorSubmit = (data: NoProsumidorData) => {
     setNoProsumidorData(data);
-    setResults(calculateNoProsumidor(data));
+    const res = calculateNoProsumidor(data);
+    setResults(res);
     setStep(3);
     incrementCompletaronCount();
+    const isGD = userType === UserType.EPE_NO_PROSUMIDOR_GD;
+    saveSimulation(userType || UserType.NO_PROSUMIDOR, isGD, res);
   };
 
   const handleReset = () => {

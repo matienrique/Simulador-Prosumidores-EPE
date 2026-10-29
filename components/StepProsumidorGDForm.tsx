@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ProsumidorGDData, TaxStatus } from '../types';
 import { Info, AlertCircle } from 'lucide-react';
 import Footer from './Footer';
+import InvoiceScannerGD from './InvoiceScannerGD';
 
 interface Props {
   initialData: ProsumidorGDData;
@@ -27,12 +28,64 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
     }));
   };
 
+  const handleInvoiceDataExtracted = (data: Partial<ProsumidorGDData>) => {
+    const prog = data.program === 'anterior' ? 'anterior' : '4.0';
+    setProgram(prog);
+
+    setFormData(prev => {
+      let taxStatus = prev.taxStatus;
+      if (data.taxStatus && Object.values(TaxStatus).includes(data.taxStatus as TaxStatus)) {
+        taxStatus = data.taxStatus as TaxStatus;
+      }
+
+      return {
+        ...prev,
+        program: prog,
+        capGD: typeof data.capGD === 'number' ? data.capGD : prev.capGD,
+        leyGD: typeof data.leyGD === 'number' ? data.leyGD : prev.leyGD,
+        reconGSF_GD: prog === 'anterior' ? 0 : (typeof data.reconGSF_GD === 'number' ? Math.abs(data.reconGSF_GD) : prev.reconGSF_GD),
+        resolucion976: typeof data.resolucion976 === 'number' ? data.resolucion976 : prev.resolucion976,
+        isRosario: typeof data.isRosario === 'boolean' ? data.isRosario : prev.isRosario,
+        aplicaLey7797: typeof data.aplicaLey7797 === 'boolean' 
+          ? data.aplicaLey7797 
+          : (typeof (data as any).ley7797 === 'number' ? (data as any).ley7797 > 0 : false),
+        taxStatus,
+        cargoComercial: typeof data.cargoComercial === 'number' ? data.cargoComercial : prev.cargoComercial,
+        cargoCapSumPico: typeof data.cargoCapSumPico === 'number' ? data.cargoCapSumPico : prev.cargoCapSumPico,
+        cargoCapSumFPico: typeof data.cargoCapSumFPico === 'number' ? data.cargoCapSumFPico : prev.cargoCapSumFPico,
+        cargoPotenciaPico: typeof data.cargoPotenciaPico === 'number' ? data.cargoPotenciaPico : prev.cargoPotenciaPico,
+        eaConsPico: typeof data.eaConsPico === 'number' ? data.eaConsPico : prev.eaConsPico,
+        precioUnitarioPico: typeof data.precioUnitarioPico === 'number' ? data.precioUnitarioPico : prev.precioUnitarioPico,
+        eaConsResto: typeof data.eaConsResto === 'number' ? data.eaConsResto : prev.eaConsResto,
+        precioUnitarioResto: typeof data.precioUnitarioResto === 'number' ? data.precioUnitarioResto : prev.precioUnitarioResto,
+        eaConsValle: typeof data.eaConsValle === 'number' ? data.eaConsValle : prev.eaConsValle,
+        precioUnitarioValle: typeof data.precioUnitarioValle === 'number' ? data.precioUnitarioValle : prev.precioUnitarioValle,
+        recargoBonifFP: typeof data.recargoBonifFP === 'number' ? data.recargoBonifFP : prev.recargoBonifFP,
+        subtotalConsumoEnergia: typeof data.subtotalConsumoEnergia === 'number' ? data.subtotalConsumoEnergia : prev.subtotalConsumoEnergia,
+        subtotalGeneral: typeof data.subtotalGeneral === 'number' ? data.subtotalGeneral : prev.subtotalGeneral,
+        totalPagar: typeof data.totalPagar === 'number' && data.totalPagar > 0 ? data.totalPagar : prev.totalPagar,
+        entPico: typeof data.entPico === 'number' ? data.entPico : prev.entPico,
+        entResto: typeof data.entResto === 'number' ? data.entResto : prev.entResto,
+        entValle: typeof data.entValle === 'number' ? data.entValle : prev.entValle,
+        recPico: typeof data.recPico === 'number' ? data.recPico : prev.recPico,
+        recResto: typeof data.recResto === 'number' ? data.recResto : prev.recResto,
+        recValle: typeof data.recValle === 'number' ? data.recValle : prev.recValle,
+        genPico: typeof data.genPico === 'number' ? data.genPico : prev.genPico,
+        genResto: typeof data.genResto === 'number' ? data.genResto : prev.genResto,
+        genValle: typeof data.genValle === 'number' ? data.genValle : prev.genValle,
+      };
+    });
+  };
+
   const handleChange = (field: keyof ProsumidorGDData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleNumberChange = (field: keyof ProsumidorGDData, valueStr: string) => {
-    const val = valueStr === '' ? 0 : parseFloat(valueStr);
+    let val = valueStr === '' ? 0 : parseFloat(valueStr);
+    if (field === 'reconGSF_GD') {
+      val = Math.abs(val);
+    }
     handleChange(field, val);
   };
 
@@ -86,7 +139,10 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
     <div className="flex flex-col min-h-full">
     <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in text-gray-800 flex-grow">
       
-      {/* Program Selection - MUST be first */}
+      {/* OCR Scanner for Prosumidor Gran Demanda Invoices */}
+      <InvoiceScannerGD onDataExtracted={handleInvoiceDataExtracted} />
+
+      {/* Program Selection */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Selección de Programa</h3>
         <div className="flex flex-col sm:flex-row gap-4">
@@ -131,7 +187,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
           {/* 2.1 Detalle de Facturación */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 className="text-lg font-semibold text-violet-800 mb-4 border-b pb-2 border-violet-100">Detalle de Facturación</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
               <div>
                 <label className={labelStyle}>Cuota de Alumbrado Público ($)</label>
                 <input
@@ -158,6 +214,15 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                   />
                 </div>
               )}
+              <div>
+                <label className={labelStyle}>Resolución 976 </label>
+                <input
+                  type="number" step="0.01" min="0"
+                  value={formData.resolucion976 || ''} onChange={(e) => handleNumberChange('resolucion976', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">Completa el monto facturado si aparece en tu factura</p>
+              </div>
             </div>
 
             <div className="mb-2">
@@ -180,6 +245,16 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                     </p>
                   </div>
                 )}
+
+                <label className="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.aplicaLey7797 ?? true}
+                    onChange={(e) => handleChange('aplicaLey7797', e.target.checked)}
+                    className="w-5 h-5 text-violet-600 focus:ring-violet-500 border-gray-300 rounded"
+                  />
+                  <span className="text-gray-700 font-medium">Aplica la Ley N° 7797</span>
+                </label>
               </div>
 
               <label className={labelStyle}>¿Cuál es tu condición fiscal? <span className="text-red-500">*</span></label>
@@ -261,6 +336,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 <div>
                  <label className={labelStyle}>Recargo/Bonif FP ($)</label>
                  <input type="number" step="0.01" value={formData.recargoBonifFP || ''} onChange={(e) => handleNumberChange('recargoBonifFP', e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-violet-500 outline-none"/>
+                 <p className="text-[11px] text-gray-500 mt-1">Si en la factura figura con signo menos (-) a la derecha, es una bonificación y debe ingresarse con valor negativo.</p>
                 </div>
                 
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-2">

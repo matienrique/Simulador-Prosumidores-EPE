@@ -13,15 +13,30 @@
       },
       "required": ["number", "date", "userType", "resolved"]
     },
+    "Simulation": {
+      "title": "Simulation",
+      "description": "Simulation savings record",
+      "type": "object",
+      "properties": {
+        "number": { "type": "integer", "description": "Simulation number" },
+        "date": { "type": "string", "description": "Date of simulation" },
+        "userType": { "type": "string", "description": "Type of user (Prosumidor/No Prosumidor + Category)" },
+        "ahorroPesos": { "type": "number", "description": "Total estimated savings in pesos" },
+        "ahorroPorcentaje": { "type": "number", "description": "Estimated savings percentage" }
+      },
+      "required": ["number", "date", "userType", "ahorroPesos", "ahorroPorcentaje"]
+    },
     "Stats": {
       "title": "Stats",
       "description": "Global statistics and counters",
       "type": "object",
       "properties": {
         "visitCount": { "type": "integer", "description": "Total page visits" },
+        "completaronCount": { "type": "integer", "description": "Total users who completed a simulation" },
         "resolvedCount": { "type": "integer", "description": "Total users who resolved their query" },
         "notResolvedCount": { "type": "integer", "description": "Total users who did not resolve their query" },
-        "lastConsultationNumber": { "type": "integer", "description": "Last consultation number assigned" }
+        "lastConsultationNumber": { "type": "integer", "description": "Last consultation number assigned" },
+        "lastSimulationNumber": { "type": "integer", "description": "Last simulation number assigned" }
       },
       "required": ["visitCount", "resolvedCount", "notResolvedCount", "lastConsultationNumber"]
     },
@@ -41,6 +56,10 @@
     "tabla_estadisticas": {
       "schema": "Feedback",
       "description": "Collection of user feedback"
+    },
+    "tabla_ahorros": {
+      "schema": "Simulation",
+      "description": "Collection of recorded simulation savings"
     },
     "global_stats": {
       "schema": "Stats",
