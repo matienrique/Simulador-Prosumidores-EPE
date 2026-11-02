@@ -51,7 +51,7 @@ export const InvoiceScannerNoPros: React.FC<Props> = ({ onDataExtracted }) => {
         reader.readAsDataURL(file);
       });
 
-      setProcessingStep('Analizando factura con IA...');
+      setProcessingStep('Analizando factura...');
 
       const extractedData = await sendOcrRequest<any>(
         '/api/extract-no-prosumidor-invoice',

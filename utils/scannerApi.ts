@@ -34,21 +34,35 @@ export async function sendOcrRequest<T>(
     const contentType = response.headers.get('content-type') || '';
     let result: ScanApiResponse<T> | null = null;
 
+    let responseText = '';
     if (contentType.includes('application/json')) {
       try {
-        result = await response.json();
+        responseText = await response.text();
+        result = JSON.parse(responseText);
       } catch (parseErr) {
         console.warn('No se pudo interpretar el cuerpo JSON de la respuesta:', parseErr);
       }
     } else {
       // Received HTML or plain text (e.g. 504 Gateway Timeout or Cloud Run error page)
-      const text = await response.text();
-      console.warn(`Respuesta no-JSON recibida (${response.status}):`, text.slice(0, 150));
+      responseText = await response.text();
+      console.warn(`Respuesta no-JSON recibida (${response.status}):`, responseText.slice(0, 150));
     }
 
     if (!response.ok || !result || !result.success) {
-      if (result?.error) {
-        throw new Error(result.error);
+      const errMsg = result?.error || '';
+      const errMsgLower = (errMsg + ' ' + responseText).toLowerCase();
+
+      if (
+        errMsgLower.includes('high demand') ||
+        errMsgLower.includes('503') ||
+        errMsgLower.includes('unavailable') ||
+        errMsgLower.includes('spikes in demand')
+      ) {
+        throw new Error('El servicio de inteligencia artificial está experimentando alta demanda momentánea. Por favor reintentá en unos segundos.');
+      }
+
+      if (errMsg) {
+        throw new Error(errMsg);
       }
 
       if (response.status === 504 || response.status === 408) {

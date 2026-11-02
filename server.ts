@@ -115,8 +115,8 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
       ],
     };
 
-    // Use fast, accurate gemini-3.8-flash with fallback to gemini-3.1-flash-lite
-    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+    // Use fast, reliable gemini-3.1-flash-lite with fallback to gemini-3.8-flash
+    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
     let rawText = '';
     let lastError: any = null;
 
@@ -334,7 +334,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     }));
     parts.push({ text: promptText });
 
-    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
     let rawText = '';
     let lastError: any = null;
 
@@ -491,7 +491,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     }));
     parts.push({ text: promptText });
 
-    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
     let rawText = '';
     let lastError: any = null;
 
@@ -681,7 +681,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     }));
     parts.push({ text: promptText });
 
-    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
     let rawText = '';
     let lastError: any = null;
 

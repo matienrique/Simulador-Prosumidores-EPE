@@ -63,7 +63,7 @@ export const InvoiceScannerNoProsGD: React.FC<Props> = ({ onDataExtracted }) => 
         processedList.push({ imageBase64: base64, mimeType: 'application/pdf' });
       }
 
-      setProcessingStep('Analizando factura de Gran Demanda con IA...');
+      setProcessingStep('Analizando factura de Gran Demanda...');
 
       const extractedData = await sendOcrRequest<any>(
         '/api/extract-no-prosumidor-gd-invoice',

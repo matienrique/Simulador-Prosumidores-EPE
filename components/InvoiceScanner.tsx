@@ -139,7 +139,7 @@ export const InvoiceScanner: React.FC<Props> = ({ onDataExtracted }) => {
       const { base64, mimeType } = await compressImageIfNeeded(file);
 
       // 2. Call backend safely
-      setProcessingStep('Analizando factura con IA...');
+      setProcessingStep('Analizando factura...');
 
       const extractedData = await sendOcrRequest<ExtractedProsumidorData>(
         '/api/extract-prosumidor-invoice',

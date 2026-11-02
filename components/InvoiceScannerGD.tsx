@@ -130,7 +130,7 @@ export const InvoiceScannerGD: React.FC<Props> = ({ onDataExtracted }) => {
       }
 
       // 2. Call backend safely
-      setProcessingStep('Analizando factura de Gran Demanda con IA...');
+      setProcessingStep('Analizando factura de Gran Demanda...');
 
       const extractedData = await sendOcrRequest<Partial<ProsumidorGDData>>(
         '/api/extract-prosumidor-gd-invoice',
