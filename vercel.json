@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/extract-prosumidor-invoice",
+      "destination": "/api/extract-prosumidor-invoice"
+    },
+    {
+      "source": "/api/extract-prosumidor-gd-invoice",
+      "destination": "/api/extract-prosumidor-gd-invoice"
+    },
+    {
+      "source": "/api/extract-no-prosumidor-invoice",
+      "destination": "/api/extract-no-prosumidor-invoice"
+    },
+    {
+      "source": "/api/extract-no-prosumidor-gd-invoice",
+      "destination": "/api/extract-no-prosumidor-gd-invoice"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -73,6 +73,18 @@ export async function sendOcrRequest<T>(
         throw new Error('El documento es demasiado pesado para ser procesado. Por favor asegurate de que pese menos de 20 MB.');
       }
 
+      if (
+        responseText.toLowerCase().includes('<!doctype') ||
+        responseText.toLowerCase().includes('<html') ||
+        response.status === 404
+      ) {
+        throw new Error(
+          'El endpoint del servidor no respondió correctamente (código ' +
+            response.status +
+            '). Si desplegaste en Vercel, asegurate de configurar GEMINI_API_KEY en Settings > Environment Variables y hacer push a GitHub.'
+        );
+      }
+
       throw new Error('No se pudieron extraer los datos de la factura. Por favor verificá que el archivo sea legible o intentá de nuevo.');
     }
 
