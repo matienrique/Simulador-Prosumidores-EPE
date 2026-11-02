@@ -43,9 +43,9 @@ app.post('/api/extract-prosumidor-invoice', async (req: Request, res: Response) 
 Analiza minuciosamente esta factura de energía eléctrica de la EPE (Empresa Provincial de la Energía de Santa Fe) perteneciente a un usuario Prosumidor (Pequeña Demanda: Residencial, Comercial, Industrial o Asociaciones).
 
 Extrae los siguientes campos con la máxima exactitud numérica:
-1. "eg": Energía Generada (EG) en kWh del período (medición de generación solar).
-2. "ee": Energía Entregada (EE) en kWh (energía provista por la red EPE).
-3. "er": Energía Recibida / Inyectada (ER) en kWh (energía inyectada a la red).
+1. "eg": Energía Generada (EG) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el PRIMER valor que aparece en la columna "Consumo" (medición de generación solar).
+2. "ee": Energía Entregada (EE) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el SEGUNDO valor que aparece en la columna "Consumo" (energía provista por la red EPE).
+3. "er": Energía Recibida / Inyectada (ER) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el TERCER valor que aparece en la columna "Consumo" (energía inyectada a la red).
 4. "serviceQuota": Cuota de servicio o cargo fijo final en pesos ($).
 5. "bands": Lista de bloques o bandas de consumo de energía activa.
    - Cada banda debe tener "energy" (consumo en kWh de esa banda) y "amount" (importe en pesos $ correspondiente a esa banda).
@@ -71,9 +71,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     const schemaConfig = {
       type: Type.OBJECT,
       properties: {
-        eg: { type: Type.NUMBER, description: 'Energía Generada (kWh)' },
-        ee: { type: Type.NUMBER, description: 'Energía Entregada (kWh)' },
-        er: { type: Type.NUMBER, description: 'Energía Recibida (kWh)' },
+        eg: { type: Type.NUMBER, description: 'Energía Generada (kWh) - 1° valor de Consumo en Información de medición y lectura' },
+        ee: { type: Type.NUMBER, description: 'Energía Entregada (kWh) - 2° valor de Consumo en Información de medición y lectura' },
+        er: { type: Type.NUMBER, description: 'Energía Recibida (kWh) - 3° valor de Consumo en Información de medición y lectura' },
         serviceQuota: { type: Type.NUMBER, description: 'Cuota de servicio o cargo fijo ($)' },
         bands: {
           type: Type.ARRAY,
@@ -115,8 +115,8 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
       ],
     };
 
-    // Candidate models with fallback in case one model is experiencing a high-demand spike
-    const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+    // Use fast, accurate gemini-3.8-flash with fallback to gemini-3.1-flash-lite
+    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
     let rawText = '';
     let lastError: any = null;
 
@@ -334,7 +334,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     }));
     parts.push({ text: promptText });
 
-    const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
     let rawText = '';
     let lastError: any = null;
 
@@ -491,7 +491,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     }));
     parts.push({ text: promptText });
 
-    const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
     let rawText = '';
     let lastError: any = null;
 
@@ -681,7 +681,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     }));
     parts.push({ text: promptText });
 
-    const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+    const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
     let rawText = '';
     let lastError: any = null;
 

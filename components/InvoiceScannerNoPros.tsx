@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Sparkles, Loader2, CheckCircle2, AlertCircle, FileText, X, RefreshCw } from 'lucide-react';
+import { sendOcrRequest, MAX_FILE_SIZE_BYTES } from '../utils/scannerApi';
 
 interface Props {
   onDataExtracted: (data: any) => void;
@@ -29,6 +30,11 @@ export const InvoiceScannerNoPros: React.FC<Props> = ({ onDataExtracted }) => {
       return;
     }
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError('El archivo seleccionado supera el límite de 20 MB. Por favor subí un documento más liviano.');
+      return;
+    }
+
     setFileName(file.name);
     setIsProcessing(true);
     setProcessingStep('Optimizando documento para lectura...');
@@ -45,28 +51,18 @@ export const InvoiceScannerNoPros: React.FC<Props> = ({ onDataExtracted }) => {
         reader.readAsDataURL(file);
       });
 
-      setProcessingStep('Analizando factura...');
+      setProcessingStep('Analizando factura con IA...');
 
-      const response = await fetch('/api/extract-no-prosumidor-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const extractedData = await sendOcrRequest<any>(
+        '/api/extract-no-prosumidor-invoice',
+        {
           imageBase64: base64Data,
           mimeType: 'application/pdf',
-        }),
-      });
+        }
+      );
 
-      setProcessingStep('Extrayendo consumos, cuota e importes...');
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'No se pudieron extraer los datos de la factura.');
-      }
-
-      onDataExtracted(result.data);
+      setProcessingStep('Completando campos...');
+      onDataExtracted(extractedData);
       setSuccessMessage('¡Datos leídos exitosamente! Recordá comprobar tus datos y ajustarlos si es necesario.');
 
       setTimeout(() => {

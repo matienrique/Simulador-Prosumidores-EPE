@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Sparkles, Loader2, CheckCircle2, AlertCircle, FileText, X, RefreshCw } from 'lucide-react';
+import { sendOcrRequest, MAX_FILE_SIZE_BYTES } from '../utils/scannerApi';
 
 interface ExtractedProsumidorData {
   eg?: number;
@@ -124,6 +125,11 @@ export const InvoiceScanner: React.FC<Props> = ({ onDataExtracted }) => {
       return;
     }
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError('El archivo seleccionado supera el límite de 20 MB. Por favor subí un documento más liviano.');
+      return;
+    }
+
     setFileName(file.name);
     setIsProcessing(true);
     setProcessingStep('Optimizando documento para lectura...');
@@ -132,29 +138,19 @@ export const InvoiceScanner: React.FC<Props> = ({ onDataExtracted }) => {
       // 1. Compress / Prepare Base64
       const { base64, mimeType } = await compressImageIfNeeded(file);
 
-      // 2. Call backend
-      setProcessingStep('Analizando factura');
+      // 2. Call backend safely
+      setProcessingStep('Analizando factura con IA...');
 
-      const response = await fetch('/api/extract-prosumidor-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const extractedData = await sendOcrRequest<ExtractedProsumidorData>(
+        '/api/extract-prosumidor-invoice',
+        {
           imageBase64: base64,
           mimeType: mimeType,
-        }),
-      });
+        }
+      );
 
-      setProcessingStep('Interpretando lecturas y conceptos...');
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'No se pudieron extraer los datos de la factura.');
-      }
-
-      onDataExtracted(result.data);
+      setProcessingStep('Completando campos...');
+      onDataExtracted(extractedData);
       setSuccessMessage('¡Datos leídos exitosamente! Recordá comprobar tus datos y ajustarlos si es necesario.');
 
       // Scroll smoothly to the form fields so the user sees the filled data

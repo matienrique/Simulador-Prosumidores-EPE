@@ -197,7 +197,10 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
       ) : (
         <>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 border-violet-100">Información de medición y lectura</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2 border-violet-100">Información de medición y lectura</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              En tu factura, en el apartado &quot;Información de medición y lectura&quot;, estos valores se corresponden con los valores de la columna &quot;Consumo&quot;, siendo el primero la energía generada, el segundo la entregada y el tercero la recibida.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className={labelStyle}>Energía Generada (EG)</label>
@@ -209,6 +212,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
                   onChange={(e) => handleNumberChange('eg', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
+                <p className="text-[11px] text-gray-500 mt-1">1° valor de Consumo (kWh)</p>
               </div>
               <div>
                 <label className={labelStyle}>Energía Entregada (EE)</label>
@@ -220,6 +224,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
                   onChange={(e) => handleNumberChange('ee', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
+                <p className="text-[11px] text-gray-500 mt-1">2° valor de Consumo (kWh)</p>
               </div>
               <div>
                 <label className={labelStyle}>Energía Recibida (ER)</label>
@@ -231,6 +236,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
                   onChange={(e) => handleNumberChange('er', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
+                <p className="text-[11px] text-gray-500 mt-1">3° valor de Consumo (kWh)</p>
               </div>
             </div>
           </div>

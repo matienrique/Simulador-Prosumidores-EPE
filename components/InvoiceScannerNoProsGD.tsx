@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Sparkles, Loader2, CheckCircle2, AlertCircle, FileText, X, RefreshCw, Layers } from 'lucide-react';
+import { sendOcrRequest, MAX_FILE_SIZE_BYTES } from '../utils/scannerApi';
 
 interface Props {
   onDataExtracted: (data: any) => void;
@@ -37,6 +38,12 @@ export const InvoiceScannerNoProsGD: React.FC<Props> = ({ onDataExtracted }) => 
       return;
     }
 
+    const totalBytes = validFiles.reduce((acc, f) => acc + f.size, 0);
+    if (totalBytes > MAX_FILE_SIZE_BYTES) {
+      setError('Los documentos seleccionados superan el límite permitido (20 MB en total). Por favor subí archivos más livianos.');
+      return;
+    }
+
     setFileNames(validFiles.map(f => f.name));
     setIsProcessing(true);
     setProcessingStep('Optimizando documento(s) para lectura...');
@@ -56,27 +63,17 @@ export const InvoiceScannerNoProsGD: React.FC<Props> = ({ onDataExtracted }) => 
         processedList.push({ imageBase64: base64, mimeType: 'application/pdf' });
       }
 
-      setProcessingStep('Analizando factura de Gran Demanda...');
+      setProcessingStep('Analizando factura de Gran Demanda con IA...');
 
-      const response = await fetch('/api/extract-no-prosumidor-gd-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const extractedData = await sendOcrRequest<any>(
+        '/api/extract-no-prosumidor-gd-invoice',
+        {
           files: processedList,
-        }),
-      });
+        }
+      );
 
-      setProcessingStep('Extrayendo potencias, cargos y tabla de consumos...');
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'No se pudieron extraer los datos de la factura.');
-      }
-
-      onDataExtracted(result.data);
+      setProcessingStep('Completando campos...');
+      onDataExtracted(extractedData);
       setSuccessMessage('¡Datos leídos exitosamente! Recordá comprobar tus datos y ajustarlos si es necesario.');
 
       setTimeout(() => {

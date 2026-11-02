@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Sparkles, Loader2, CheckCircle2, AlertCircle, FileText, X, RefreshCw, Layers } from 'lucide-react';
 import { ProsumidorGDData, TaxStatus } from '../types';
+import { sendOcrRequest, MAX_FILE_SIZE_BYTES } from '../utils/scannerApi';
 
 interface Props {
   onDataExtracted: (data: Partial<ProsumidorGDData>) => void;
@@ -110,6 +111,12 @@ export const InvoiceScannerGD: React.FC<Props> = ({ onDataExtracted }) => {
       return;
     }
 
+    const totalBytes = validFiles.reduce((acc, f) => acc + f.size, 0);
+    if (totalBytes > MAX_FILE_SIZE_BYTES) {
+      setError('Los documentos seleccionados superan el límite permitido (20 MB en total). Por favor subí archivos más livianos.');
+      return;
+    }
+
     setFileNames(validFiles.map(f => f.name));
     setIsProcessing(true);
     setProcessingStep('Optimizando documento(s) para lectura...');
@@ -122,28 +129,18 @@ export const InvoiceScannerGD: React.FC<Props> = ({ onDataExtracted }) => {
         processedList.push({ imageBase64: base64, mimeType });
       }
 
-      // 2. Call backend
-      setProcessingStep('Analizando factura de Gran Demanda');
+      // 2. Call backend safely
+      setProcessingStep('Analizando factura de Gran Demanda con IA...');
 
-      const response = await fetch('/api/extract-prosumidor-gd-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const extractedData = await sendOcrRequest<Partial<ProsumidorGDData>>(
+        '/api/extract-prosumidor-gd-invoice',
+        {
           files: processedList,
-        }),
-      });
+        }
+      );
 
-      setProcessingStep('Extrayendo cargos, importes y tabla de mediciones...');
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'No se pudieron extraer los datos de la factura.');
-      }
-
-      onDataExtracted(result.data);
+      setProcessingStep('Completando campos...');
+      onDataExtracted(extractedData);
       setSuccessMessage('¡Datos leídos exitosamente! Recordá comprobar tus datos y ajustarlos si es necesario.');
 
       // Smooth scroll to form fields
