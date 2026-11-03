@@ -199,6 +199,21 @@ const AdminDashboardPanel: React.FC<{
   );
 };
 
+const formatDisplayDate = (d: string): string => {
+  if (!d) return '-';
+  const parts = d.trim().split('/');
+  if (parts.length >= 2) {
+    const first = parseInt(parts[0], 10);
+    const second = parseInt(parts[1], 10);
+    const year = parts[2] ? `/${parts[2]}` : '';
+    // If second > 12, it was stored in MM/DD/YYYY format -> flip to DD/MM/YYYY
+    if (second > 12 && first <= 12) {
+      return `${second}/${first}${year}`;
+    }
+  }
+  return d;
+};
+
 const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpdate }) => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -416,7 +431,7 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
                         simulations.map((item, idx) => (
                           <tr key={idx} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4 border-b font-bold text-gray-600">{item.number}</td>
-                            <td className="px-6 py-4 border-b text-gray-500">{item.date}</td>
+                            <td className="px-6 py-4 border-b text-gray-500">{formatDisplayDate(item.date)}</td>
                             <td className="px-6 py-4 border-b font-medium text-gray-700">{item.userType}</td>
                             <td className="px-6 py-4 border-b font-bold text-emerald-600">
                               {formatCurrency(item.ahorroPesos)}
@@ -458,7 +473,7 @@ const StatsDashboard: React.FC<Props> = ({ onBack, noProsumidorData, onAdminUpda
                       feedback.map((item, idx) => (
                         <tr key={idx} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 border-b font-bold text-gray-600">{item.number}</td>
-                          <td className="px-6 py-4 border-b text-gray-500">{item.date}</td>
+                          <td className="px-6 py-4 border-b text-gray-500">{formatDisplayDate(item.date)}</td>
                           <td className="px-6 py-4 border-b font-medium text-gray-700">{item.userType}</td>
                           <td className="px-6 py-4 border-b">
                             {item.resolved ? (

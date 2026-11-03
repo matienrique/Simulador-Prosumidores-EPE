@@ -29,6 +29,13 @@ export interface GlobalStats {
 
 const STATS_DOC_ID = 'counters';
 
+export const formatLocalDate = (d = new Date()): string => {
+  const day = d.getDate();
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 export const incrementVisitCount = async () => {
   try {
     const statsRef = doc(db, 'global_stats', STATS_DOC_ID);
@@ -111,7 +118,7 @@ export const saveFeedback = async (resolved: boolean, observations: string, user
 
     const feedback: FeedbackData = {
       number: nextNumber,
-      date: new Date().toLocaleDateString(),
+      date: formatLocalDate(),
       userType: getUserTypeLabel(userType, isGD),
       resolved,
       observations
@@ -191,7 +198,7 @@ export const saveSimulation = async (userType: UserType, isGD: boolean, results:
 
     const simulation: SimulationData = {
       number: nextNumber,
-      date: new Date().toLocaleDateString(),
+      date: formatLocalDate(),
       userType: getUserTypeLabel(userType, isGD),
       ahorroPesos,
       ahorroPorcentaje
