@@ -171,7 +171,7 @@ export async function extractProsumidorGDInvoice(fileList: Array<{ imageBase64: 
 
   const promptText = `
 Analiza minuciosamente esta factura de energía eléctrica de la EPE (Empresa Provincial de la Energía de Santa Fe) perteneciente a un usuario PROSUMIDOR de GRAN DEMANDA (Grandes Demandas / Tarifa 2).
-En las facturas de Gran Demanda Prosumidor, los datos suelen distribuirse en 2 páginas o secciones (Hoja 1: Resumen y conceptos Prosumidores; Hoja 2: Detalle de componentes del importe básico y mediciones).
+En las facturas de Gran Demanda Prosumidor, los datos suelen distribuirse en 2 páginas o secciones (Hoja 1: Resumen, conceptos Prosumidores y Detalle de Facturación; Hoja 2: Detalle de componentes del importe básico y mediciones).
 
 Extrae los siguientes campos con la máxima precisión numérica:
 1. "contractedPower": Potencia contratada en kW (si figuran dos valores de potencia contratada, extrae el mayor de ambos).
@@ -190,9 +190,13 @@ Extrae los siguientes campos con la máxima precisión numérica:
    - "recargoBonifFP": Recargo o Bonificación por Factor de Potencia (Energía Reactiva) en pesos ($). Si figura como bonificación (con signo negativo o menos al final), devuelve un número negativo. Si es recargo, positivo.
    - "subtotalConsumoEnergia": Subtotal consumo de energía activa ($).
    - "subtotalGeneral": Subtotal general / Importe básico ($).
-3. Conceptos Prosumidores (Créditos / Compensaciones):
-   - "reconEPE_GD": Reconocimiento EPE ($). Si en la factura figura como crédito/descuento con signo negativo (ej: "-1234.56"), debes devolver un número positivo o negativo según corresponda (generalmente es un importe positivo que descuenta).
-   - "reconGSF_GD": Reconocimiento Gobierno de Santa Fe ($) o incentivo provincial Prosumidores GD.
+3. Conceptos Prosumidores y "Detalle de Facturación" (REGLA FUNDAMENTAL):
+   En el apartado "Detalle de Facturación" de la factura de Gran Demanda Prosumidor, extrae exactamente el importe que aparece a su costado para los siguientes conceptos:
+   - "capGD": "Cuota de alumbrado publico ($)" (o "Cuota de Alumbrado Público", "C.A.P."). Extrae el importe que aparece a su costado en pesos ($). Si no figura, pon 0.
+   - "leyGD": "Ley 12692" (o Fondo Renovables Ley 12692). Extrae el importe que aparece a su costado en pesos ($). Si no figura, pon 0.
+   - "reconGSF_GD": "Cancela. Fact. PROSUMIDOR MAX". En el "Detalle de Facturación" aparece con ese nombre exacto ("Cancela. Fact. PROSUMIDOR MAX"). Extrae el importe numérico que figura a su costado en pesos ($) como valor positivo. Si no figura o no aplica, pon 0.
+   - "resolucion976": "Resolución 976" (o "Resolucion 976"). En el "Detalle de Facturación" aparece con ese nombre. Extrae el importe que figura a su costado en pesos ($). Si no figura, pon 0.
+   - "reconEPE_GD": Reconocimiento EPE ($). Si en la factura figura como crédito/descuento por energía inyectada, extrae el monto como número positivo.
 4. Mediciones de Energía en Bloque Horario (Información de medición y lectura):
    - Entregada / Consumida de la red (kWh): "entPico", "entResto", "entValle".
    - Recibida / Inyectada a la red (kWh): "recPico", "recResto", "recValle".
@@ -200,6 +204,7 @@ Extrae los siguientes campos con la máxima precisión numérica:
 5. Otros cargos e impuestos:
    - "ley7797": Importe en pesos ($) correspondiente a la Ley N° 7797 (o "Ley 7797") que figure en el Detalle de Facturación. Si no aparece el detalle de la misma o su monto es cero, pon 0.
    - "totalPagar": Total a Pagar Vencimiento ($ importe final total a pagar de la factura).
+   - "program": '4.0' si figura "Cancela. Fact. PROSUMIDOR MAX" o Prosumidores 4.0; 'anterior' si indica programa previo (ERA, Prosumidores 2).
 6. "isRosario": true si el suministro, domicilio o localidad es de Rosario; false en caso contrario.
 7. "taxStatus": Condición fiscal del cliente ante el IVA ('Responsable Inscripto', 'Responsable Inscripto Agente Percepción', 'Exento').
 
@@ -224,9 +229,13 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
       subtotalConsumoEnergia: { type: Type.NUMBER, description: 'Subtotal consumo energía activa ($)' },
       subtotalGeneral: { type: Type.NUMBER, description: 'Subtotal general ($)' },
       reconEPE_GD: { type: Type.NUMBER, description: 'Reconocimiento EPE ($)' },
-      reconGSF_GD: { type: Type.NUMBER, description: 'Reconocimiento Gobierno Santa Fe ($)' },
+      reconGSF_GD: { type: Type.NUMBER, description: 'Cancela. Fact. PROSUMIDOR MAX ($) en Detalle de Facturación' },
+      capGD: { type: Type.NUMBER, description: 'Cuota de alumbrado publico ($) en Detalle de Facturación' },
+      leyGD: { type: Type.NUMBER, description: 'Ley 12692 ($) en Detalle de Facturación' },
+      resolucion976: { type: Type.NUMBER, description: 'Resolución 976 ($) en Detalle de Facturación' },
       ley7797: { type: Type.NUMBER, description: 'Importe Ley 7797 ($). 0 si no figura o es 0.' },
       totalPagar: { type: Type.NUMBER, description: 'Total a pagar de la factura ($)' },
+      program: { type: Type.STRING, description: "'4.0' o 'anterior'" },
       isRosario: { type: Type.BOOLEAN, description: 'Si el suministro está en Rosario' },
       taxStatus: { type: Type.STRING, description: 'Condición fiscal ante el IVA' },
       cargoComercial: { type: Type.NUMBER, description: 'Cargo Comercial ($)' },
@@ -244,6 +253,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
       'contractedPower',
       'reconEPE_GD',
       'reconGSF_GD',
+      'capGD',
+      'leyGD',
+      'resolucion976',
       'isRosario',
       'taxStatus',
       'cargoComercial',
@@ -284,6 +296,21 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
   const parsedData = JSON.parse(cleanJson);
   const ley7797Amount = typeof parsedData.ley7797 === 'number' ? parsedData.ley7797 : 0;
   parsedData.aplicaLey7797 = ley7797Amount > 0;
+
+  // Normalizations for Detalle de Facturación fields
+  if (typeof parsedData.reconGSF_GD === 'number') {
+    parsedData.reconGSF_GD = Math.abs(parsedData.reconGSF_GD);
+  }
+  if (typeof (parsedData as any).cap === 'number' && typeof parsedData.capGD !== 'number') {
+    parsedData.capGD = (parsedData as any).cap;
+  }
+  if (typeof (parsedData as any).ley12692 === 'number' && typeof parsedData.leyGD !== 'number') {
+    parsedData.leyGD = (parsedData as any).ley12692;
+  }
+  if (typeof (parsedData as any).cancelaFactProsumidorMax === 'number' && typeof parsedData.reconGSF_GD !== 'number') {
+    parsedData.reconGSF_GD = Math.abs((parsedData as any).cancelaFactProsumidorMax);
+  }
+
   return parsedData;
 }
 

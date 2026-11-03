@@ -29,7 +29,9 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   };
 
   const handleInvoiceDataExtracted = (data: Partial<ProsumidorGDData>) => {
-    const prog = data.program === 'anterior' ? 'anterior' : '4.0';
+    const prog = (typeof data.reconGSF_GD === 'number' && data.reconGSF_GD > 0) 
+      ? '4.0' 
+      : (data.program === 'anterior' ? 'anterior' : '4.0');
     setProgram(prog);
 
     setFormData(prev => {
@@ -41,8 +43,8 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
       return {
         ...prev,
         program: prog,
-        capGD: typeof data.capGD === 'number' ? data.capGD : prev.capGD,
-        leyGD: typeof data.leyGD === 'number' ? data.leyGD : prev.leyGD,
+        capGD: typeof data.capGD === 'number' ? data.capGD : (typeof (data as any).cap === 'number' ? (data as any).cap : prev.capGD),
+        leyGD: typeof data.leyGD === 'number' ? data.leyGD : (typeof (data as any).ley12692 === 'number' ? (data as any).ley12692 : prev.leyGD),
         reconGSF_GD: prog === 'anterior' ? 0 : (typeof data.reconGSF_GD === 'number' ? Math.abs(data.reconGSF_GD) : prev.reconGSF_GD),
         resolucion976: typeof data.resolucion976 === 'number' ? data.resolucion976 : prev.resolucion976,
         isRosario: typeof data.isRosario === 'boolean' ? data.isRosario : prev.isRosario,
