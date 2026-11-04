@@ -76,15 +76,18 @@ export async function extractProsumidorInvoice(imageBase64: string, mimeType: st
 Analiza minuciosamente esta factura de energía eléctrica de la EPE (Empresa Provincial de la Energía de Santa Fe) perteneciente a un usuario Prosumidor (Pequeña Demanda: Residencial, Comercial, Industrial o Asociaciones).
 
 Extrae los siguientes campos con la máxima exactitud numérica:
-1. "eg": Energía Generada (EG) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el PRIMER valor que aparece en la columna "Consumo" (medición de generación solar).
-2. "ee": Energía Entregada (EE) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el SEGUNDO valor que aparece en la columna "Consumo" (energía provista por la red EPE).
-3. "er": Energía Recibida / Inyectada (ER) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el TERCER valor que aparece en la columna "Consumo" (energía inyectada a la red).
+1. "eg": Energía Generada (EG) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el PRIMER valor que aparece en la columna "Consumo" (medición de generación solar). REGLA FUNDAMENTAL: Es un valor REDONDO Y ENTERO, NUNCA decimal. En las facturas de la EPE, el punto (.) se utiliza como separador de miles (por ejemplo "15.000" representa quince mil kWh, es decir 15000, y NUNCA 15 o 15,000; "1.250" representa 1250 kWh). Debes devolver siempre el número entero sin puntos de miles (ej: 15000, 1250, 480).
+2. "ee": Energía Entregada (EE) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el SEGUNDO valor que aparece en la columna "Consumo" (energía provista por la red EPE). REGLA FUNDAMENTAL: Es un valor REDONDO Y ENTERO, NUNCA decimal. El punto (.) es separador de miles ("15.000" es 15000). Debes devolver siempre el número entero sin puntos de miles.
+3. "er": Energía Recibida / Inyectada (ER) en kWh. En la factura, en el apartado "Información de medición y lectura", este valor se corresponde con el TERCER valor que aparece en la columna "Consumo" (energía inyectada a la red). REGLA FUNDAMENTAL: Es un valor REDONDO Y ENTERO, NUNCA decimal. El punto (.) es separador de miles ("15.000" es 15000). Debes devolver siempre el número entero sin puntos de miles.
 4. "serviceQuota": Cuota de servicio o cargo fijo final en pesos ($).
 5. "bands": Lista de bloques o bandas de consumo de energía activa.
    - Cada banda debe tener "energy" (consumo en kWh de esa banda) y "amount" (importe en pesos $ correspondiente a esa banda).
    - Si en la factura figura por ejemplo "Primeros 300 kWh a $X", esa es una banda. Si solo hay un importe general de energía activa, ponlo como una sola banda.
 6. "reconEPE": Reconocimiento EPE ($), compensación o crédito facturado por la EPE por la energía inyectada.
-7. "reconGSF": Reconocimiento del Gobierno de la Provincia de Santa Fe ($) o incentivo provincial Prosumidores.
+7. "reconGSF": Reconocimiento del Gobierno de la Provincia de Santa Fe ($) (Incentivo Provincial Prosumidores 4.0).
+   UBICACIÓN FUNDAMENTAL: En la factura de Prosumidores (Pequeña Demanda), este valor se encuentra DEBAJO DE TODO (al final) en la sección "Detalle de Facturación". Puede figurar como "Reconocimiento G.S.F.", "Recon. Gobierno de Santa Fe", "Reconocimiento Gob. Santa Fe", "Incentivo Provincial Prosumidores", "Cancela. Fact. PROSUMIDOR", etc.
+   Extrae con precisión el importe numérico que aparece a su costado en esa línea final del Detalle de Facturación.
+   Si en la factura figura como un crédito con signo negativo (por ejemplo "-1234.56" o "1234.56-"), debes devolver siempre el valor como un número POSITIVO (absoluto, ej: 1234.56). Si no figura o es cero, pon 0.
 8. "cap": Cuota de Alumbrado Público (CAP) en pesos ($).
 9. "ley12692": Fondo de Energías Renovables Ley 12692 en pesos ($).
 10. "ley7797": Importe en pesos ($) correspondiente a la Ley N° 7797 (o "Ley 7797", "Cuota Alumbrado Público Ley 7797", etc.) que figure en el Detalle de Facturación. Si no aparece el detalle de la misma o su monto es cero, pon 0.
@@ -104,9 +107,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
   const schemaConfig = {
     type: Type.OBJECT,
     properties: {
-      eg: { type: Type.NUMBER, description: 'Energía Generada (kWh) - 1° valor de Consumo en Información de medición y lectura' },
-      ee: { type: Type.NUMBER, description: 'Energía Entregada (kWh) - 2° valor de Consumo en Información de medición y lectura' },
-      er: { type: Type.NUMBER, description: 'Energía Recibida (kWh) - 3° valor de Consumo en Información de medición y lectura' },
+      eg: { type: Type.INTEGER, description: 'Energía Generada (kWh) - Número ENTERO redondo sin decimales (15.000 = 15000)' },
+      ee: { type: Type.INTEGER, description: 'Energía Entregada (kWh) - Número ENTERO redondo sin decimales (15.000 = 15000)' },
+      er: { type: Type.INTEGER, description: 'Energía Recibida (kWh) - Número ENTERO redondo sin decimales (15.000 = 15000)' },
       serviceQuota: { type: Type.NUMBER, description: 'Cuota de servicio o cargo fijo ($)' },
       bands: {
         type: Type.ARRAY,
@@ -121,7 +124,7 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
         description: 'Bandas de consumo de energía activa',
       },
       reconEPE: { type: Type.NUMBER, description: 'Reconocimiento EPE ($)' },
-      reconGSF: { type: Type.NUMBER, description: 'Reconocimiento del Gobierno ($)' },
+      reconGSF: { type: Type.NUMBER, description: 'Reconocimiento del Gobierno ($). Se encuentra debajo de todo en la sección Detalle de Facturación. Devolver número positivo.' },
       cap: { type: Type.NUMBER, description: 'Cuota Alumbrado Público CAP ($)' },
       ley12692: { type: Type.NUMBER, description: 'Ley 12692 ($)' },
       ley7797: { type: Type.NUMBER, description: 'Importe Ley 7797 ($). 0 si no figura o es 0.' },
@@ -162,6 +165,36 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
   const parsedData = JSON.parse(cleanJson);
   const ley7797Amount = typeof parsedData.ley7797 === 'number' ? parsedData.ley7797 : 0;
   parsedData.aplicaLey7797 = ley7797Amount > 0;
+
+  // Garantizar valores enteros y redondos para eg, ee y er (consumo sin decimales)
+  const cleanInteger = (val: any) => {
+    if (typeof val === 'number') {
+      return Math.round(val);
+    }
+    if (typeof val === 'string') {
+      const cleaned = val.replace(/\./g, '').replace(/,/g, '.');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : Math.round(num);
+    }
+    return 0;
+  };
+
+  parsedData.eg = cleanInteger(parsedData.eg);
+  parsedData.ee = cleanInteger(parsedData.ee);
+  parsedData.er = cleanInteger(parsedData.er);
+
+  // Normalizar reconGSF como valor positivo (Incentivo Gobierno de Santa Fe)
+  if (typeof parsedData.reconGSF === 'number') {
+    parsedData.reconGSF = Math.abs(parsedData.reconGSF);
+  } else if (typeof (parsedData as any).reconGSF === 'string') {
+    const cleaned = (parsedData as any).reconGSF.replace(/\./g, '').replace(/,/g, '.').replace(/-/g, '');
+    const num = parseFloat(cleaned);
+    parsedData.reconGSF = isNaN(num) ? 0 : Math.abs(num);
+  }
+  if (parsedData.reconGSF > 0) {
+    parsedData.program = '4.0';
+  }
+
   return parsedData;
 }
 

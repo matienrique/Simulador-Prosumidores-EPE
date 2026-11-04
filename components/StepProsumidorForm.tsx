@@ -30,10 +30,28 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
   };
 
   const handleInvoiceDataExtracted = (data: any) => {
-    const prog = data.program === 'anterior' ? 'anterior' : '4.0';
+    const rawReconGSF = data.reconGSF ?? data.reconocimientoGSF ?? data.reconGSF_PD;
+    const numReconGSF = typeof rawReconGSF === 'number' 
+      ? Math.abs(rawReconGSF) 
+      : (typeof rawReconGSF === 'string' ? Math.abs(parseFloat(rawReconGSF.replace(/\./g, '').replace(/,/g, '.'))) : 0);
+    const validReconGSF = !isNaN(numReconGSF) && numReconGSF > 0 ? numReconGSF : 0;
+
+    const prog = validReconGSF > 0 
+      ? '4.0' 
+      : (data.program === 'anterior' ? 'anterior' : (data.program || '4.0'));
     setProgram(prog);
 
     setFormData(prev => {
+      // Helper para asegurar que los valores de consumo sean siempre enteros redondos
+      const toInteger = (val: any, fallback: number) => {
+        if (typeof val === 'number' && !isNaN(val)) return Math.round(val);
+        if (typeof val === 'string') {
+          const num = parseFloat(val.replace(/\./g, '').replace(/,/g, '.'));
+          if (!isNaN(num)) return Math.round(num);
+        }
+        return fallback;
+      };
+
       let bands = prev.bands;
       if (data.bands && Array.isArray(data.bands) && data.bands.length > 0) {
         bands = data.bands.map((b: any, index: number) => ({
@@ -52,13 +70,13 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
       return {
         ...prev,
         program: prog,
-        eg: typeof data.eg === 'number' && data.eg > 0 ? data.eg : prev.eg,
-        ee: typeof data.ee === 'number' && data.ee > 0 ? data.ee : prev.ee,
-        er: typeof data.er === 'number' && data.er > 0 ? data.er : prev.er,
+        eg: toInteger(data.eg, prev.eg),
+        ee: toInteger(data.ee, prev.ee),
+        er: toInteger(data.er, prev.er),
         serviceQuota: typeof data.serviceQuota === 'number' && data.serviceQuota > 0 ? data.serviceQuota : prev.serviceQuota,
         bands,
-        reconEPE: typeof data.reconEPE === 'number' ? data.reconEPE : prev.reconEPE,
-        reconGSF: prog === 'anterior' ? 0 : (typeof data.reconGSF === 'number' ? data.reconGSF : prev.reconGSF),
+        reconEPE: typeof data.reconEPE === 'number' ? Math.abs(data.reconEPE) : prev.reconEPE,
+        reconGSF: prog === 'anterior' ? 0 : (validReconGSF > 0 ? validReconGSF : (typeof data.reconGSF === 'number' ? Math.abs(data.reconGSF) : prev.reconGSF)),
         cap: typeof data.cap === 'number' ? data.cap : prev.cap,
         ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
         totalBill: typeof data.totalBill === 'number' && data.totalBill > 0 ? data.totalBill : prev.totalBill,
