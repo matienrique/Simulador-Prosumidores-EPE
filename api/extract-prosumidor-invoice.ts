@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ success: true, data });
   } catch (error: any) {
     console.error('Error en Vercel Serverless Function (extract-prosumidor-invoice):', error);
-    let errorMessage = error?.message || 'Error al procesar la factura con inteligencia artificial.';
+    let errorMessage = error?.message || 'Error al procesar la factura.';
     try {
       const parsedErr = JSON.parse(errorMessage);
       if (parsedErr?.error?.message) {

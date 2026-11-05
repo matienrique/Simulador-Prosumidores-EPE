@@ -88,7 +88,7 @@ Extrae los siguientes campos con la máxima exactitud numérica:
    UBICACIÓN FUNDAMENTAL: En la factura de Prosumidores (Pequeña Demanda), este valor se encuentra DEBAJO DE TODO (al final) en la sección "Detalle de Facturación". Puede figurar como "Reconocimiento G.S.F.", "Recon. Gobierno de Santa Fe", "Reconocimiento Gob. Santa Fe", "Incentivo Provincial Prosumidores", "Cancela. Fact. PROSUMIDOR", etc.
    Extrae con precisión el importe numérico que aparece a su costado en esa línea final del Detalle de Facturación.
    Si en la factura figura como un crédito con signo negativo (por ejemplo "-1234.56" o "1234.56-"), debes devolver siempre el valor como un número POSITIVO (absoluto, ej: 1234.56). Si no figura o es cero, pon 0.
-8. "cap": Cuota de Alumbrado Público (CAP) en pesos ($).
+8. "cap": Cuota de Alumbrado Público (CAP) en pesos ($). Extrae el importe si figura explícitamente "Cuota de Alumbrado Público" o "C.A.P.". NO lo confundas con la "Ley 7797". Si en la factura la Cuota de Alumbrado Público no figura, no tiene importe o su valor es 0 (o $ 0,00), pon 0.
 9. "ley12692": Fondo de Energías Renovables Ley 12692 en pesos ($).
 10. "ley7797": Importe en pesos ($) correspondiente a la Ley N° 7797 (o "Ley 7797", "Cuota Alumbrado Público Ley 7797", etc.) que figure en el Detalle de Facturación. Si no aparece el detalle de la misma o su monto es cero, pon 0.
 11. "totalBill": Importe total a pagar de la factura en pesos ($).
@@ -195,6 +195,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     parsedData.program = '4.0';
   }
 
+  // Si Cuota de Alumbrado Público es 0, negativa o no figura, dejar en 0
+  parsedData.cap = typeof parsedData.cap === 'number' && parsedData.cap > 0 ? parsedData.cap : 0;
+
   return parsedData;
 }
 
@@ -225,7 +228,7 @@ Extrae los siguientes campos con la máxima precisión numérica:
    - "subtotalGeneral": Subtotal general / Importe básico ($).
 3. Conceptos Prosumidores y "Detalle de Facturación" (REGLA FUNDAMENTAL):
    En el apartado "Detalle de Facturación" de la factura de Gran Demanda Prosumidor, extrae exactamente el importe que aparece a su costado para los siguientes conceptos:
-   - "capGD": "Cuota de alumbrado publico ($)" (o "Cuota de Alumbrado Público", "C.A.P."). Extrae el importe que aparece a su costado en pesos ($). Si no figura, pon 0.
+   - "capGD": "Cuota de alumbrado publico ($)" (o "Cuota de Alumbrado Público", "C.A.P."). Extrae el importe que aparece a su costado en pesos ($). Si no figura o su importe es 0 (o $ 0,00), pon 0.
    - "leyGD": "Ley 12692" (o Fondo Renovables Ley 12692). Extrae el importe que aparece a su costado en pesos ($). Si no figura, pon 0.
    - "reconGSF_GD": "Cancela. Fact. PROSUMIDOR MAX". En el "Detalle de Facturación" aparece con ese nombre exacto ("Cancela. Fact. PROSUMIDOR MAX"). Extrae el importe numérico que figura a su costado en pesos ($) como valor positivo. Si no figura o no aplica, pon 0.
    - "resolucion976": "Resolución 976" (o "Resolucion 976"). En el "Detalle de Facturación" aparece con ese nombre. Extrae el importe que figura a su costado en pesos ($). Si no figura, pon 0.
@@ -344,6 +347,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     parsedData.reconGSF_GD = Math.abs((parsedData as any).cancelaFactProsumidorMax);
   }
 
+  // Si Cuota de Alumbrado Público es 0, negativa o no figura, dejar en 0
+  parsedData.capGD = typeof parsedData.capGD === 'number' && parsedData.capGD > 0 ? parsedData.capGD : (typeof (parsedData as any).cap === 'number' && (parsedData as any).cap > 0 ? (parsedData as any).cap : 0);
+
   return parsedData;
 }
 
@@ -366,7 +372,7 @@ Extrae los siguientes campos con la máxima precisión numérica:
 4. "bands": Lista de bloques o bandas de consumo de energía activa.
    - Cada banda debe tener "energy" (consumo en kWh de esa banda) y "amount" (importe en pesos $ correspondiente a esa banda).
    - Si en la factura figura por ejemplo "Primeros 300 kWh a $X", esa es una banda. Si solo hay un importe general de energía activa, ponlo como una sola banda.
-5. "cap": Cuota de Alumbrado Público (CAP) en pesos ($).
+5. "cap": Cuota de Alumbrado Público (CAP) en pesos ($). Extrae el importe si figura explícitamente "Cuota de Alumbrado Público" o "C.A.P.". NO lo confundas con la "Ley 7797". Si en la factura la Cuota de Alumbrado Público no figura, no tiene importe o su valor es 0 (o $ 0,00), pon 0.
 6. "ley12692": Fondo de Energías Renovables Ley 12692 en pesos ($).
 7. "ley7797": Importe en pesos ($) correspondiente a la Ley N° 7797 (o "Ley 7797", "Cuota Alumbrado Público Ley 7797", etc.) que figure en el Detalle de Facturación. Si no aparece el detalle de la misma o su monto es cero, pon 0.
 8. "totalBill": Importe total a pagar de la factura en pesos ($).
@@ -486,6 +492,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
 
   const ley7797Amount = typeof parsedData.ley7797 === 'number' ? parsedData.ley7797 : 0;
   parsedData.aplicaLey7797 = ley7797Amount > 0;
+
+  // Si Cuota de Alumbrado Público es 0, negativa o no figura, dejar en 0
+  parsedData.cap = typeof parsedData.cap === 'number' && parsedData.cap > 0 ? parsedData.cap : 0;
   return parsedData;
 }
 
@@ -520,7 +529,7 @@ Extrae los siguientes campos con la máxima precisión numérica:
 4. Otros cargos e impuestos:
    - "resolucion976": Importe facturado por Resolución 976 ($). Si no figura en la factura, poner 0.
    - "ley7797": Importe en pesos ($) correspondiente a la Ley N° 7797 (o "Ley 7797") que figure en el Detalle de Facturación. Si no aparece el detalle de la misma o su monto es cero, pon 0.
-   - "cap": Cuota de Alumbrado Público (C.A.P.) ($).
+   - "cap": Cuota de Alumbrado Público (C.A.P.) ($). Si no figura o su importe es 0 (o $ 0,00), pon 0.
    - "ley12692": Fondo de Energías Renovables Ley 12692 ($).
    - "taxStatus": Condición fiscal del cliente ante el IVA. Debe coincidir exactamente con una de estas opciones:
      - 'Responsable Inscripto'
@@ -619,6 +628,9 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
     if (typeof parsedData.eaConsPicoPrice === 'number') parsedData.eaConsPicoPrice = truncate4(parsedData.eaConsPicoPrice);
     if (typeof parsedData.eaConsRestoPrice === 'number') parsedData.eaConsRestoPrice = truncate4(parsedData.eaConsRestoPrice);
     if (typeof parsedData.eaConsVallePrice === 'number') parsedData.eaConsVallePrice = truncate4(parsedData.eaConsVallePrice);
+
+    // Si Cuota de Alumbrado Público es 0, negativa o no figura, dejar en 0
+    parsedData.cap = typeof parsedData.cap === 'number' && parsedData.cap > 0 ? parsedData.cap : 0;
   }
   return parsedData;
 }

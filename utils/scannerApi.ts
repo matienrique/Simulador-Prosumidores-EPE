@@ -58,7 +58,7 @@ export async function sendOcrRequest<T>(
         errMsgLower.includes('unavailable') ||
         errMsgLower.includes('spikes in demand')
       ) {
-        throw new Error('El servicio de inteligencia artificial está experimentando alta demanda momentánea. Por favor reintentá en unos segundos.');
+        throw new Error('El servicio está experimentando alta demanda momentánea. Por favor reintentá en unos segundos.');
       }
 
       if (errMsg) {

@@ -43,7 +43,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
       return {
         ...prev,
         program: prog,
-        capGD: typeof data.capGD === 'number' ? data.capGD : (typeof (data as any).cap === 'number' ? (data as any).cap : prev.capGD),
+        capGD: (typeof data.capGD === 'number' && data.capGD > 0) ? data.capGD : ((typeof (data as any).cap === 'number' && (data as any).cap > 0) ? (data as any).cap : 0),
         leyGD: typeof data.leyGD === 'number' ? data.leyGD : (typeof (data as any).ley12692 === 'number' ? (data as any).ley12692 : prev.leyGD),
         reconGSF_GD: prog === 'anterior' ? 0 : (typeof data.reconGSF_GD === 'number' ? Math.abs(data.reconGSF_GD) : prev.reconGSF_GD),
         resolucion976: typeof data.resolucion976 === 'number' ? data.resolucion976 : prev.resolucion976,
@@ -194,7 +194,7 @@ const StepProsumidorGDForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 <label className={labelStyle}>Cuota de Alumbrado Público ($)</label>
                 <input
                   type="number" step="0.01" min="0"
-                  value={formData.capGD || ''} onChange={(e) => handleNumberChange('capGD', e.target.value)}
+                  value={formData.capGD && formData.capGD > 0 ? formData.capGD : ''} onChange={(e) => handleNumberChange('capGD', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
               </div>

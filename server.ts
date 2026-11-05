@@ -19,7 +19,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Shared error handler helper
 const formatError = (error: any) => {
-  let errorMessage = error?.message || 'Error al procesar la factura con inteligencia artificial.';
+  let errorMessage = error?.message || 'Error al procesar la factura.';
   try {
     const parsedErr = JSON.parse(errorMessage);
     if (parsedErr?.error?.message) {

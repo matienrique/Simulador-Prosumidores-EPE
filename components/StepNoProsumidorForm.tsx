@@ -216,7 +216,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
         consumptionHistory,
         serviceQuota: typeof data.serviceQuota === 'number' && data.serviceQuota > 0 ? data.serviceQuota : prev.serviceQuota,
         bands,
-        cap: typeof data.cap === 'number' ? data.cap : prev.cap,
+        cap: typeof data.cap === 'number' && data.cap > 0 ? data.cap : 0,
         ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
         totalBill: typeof data.totalBill === 'number' && data.totalBill > 0 ? data.totalBill : prev.totalBill,
         isRosario: typeof data.isRosario === 'boolean' ? data.isRosario : prev.isRosario,
@@ -280,7 +280,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
         eaConsValleAmount: (facturadoValle || 0) * (eaConsVallePrice || 0),
         energiaReactivaAmount,
         subtotalEnergiaAmount: typeof data.subtotalEnergiaAmount === 'number' ? data.subtotalEnergiaAmount : prev.subtotalEnergiaAmount,
-        cap: typeof data.cap === 'number' ? data.cap : prev.cap,
+        cap: typeof data.cap === 'number' && data.cap > 0 ? data.cap : 0,
         ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
         resolucion976: typeof data.resolucion976 === 'number' ? data.resolucion976 : prev.resolucion976,
         taxStatus,
@@ -682,7 +682,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
-                  value={formData.cap || ''}
+                  value={formData.cap && formData.cap > 0 ? formData.cap : ''}
                   onChange={(e) => handleNumberChange('cap', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 outline-none"
                 />
@@ -1023,7 +1023,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
-                  value={gdData.cap || ''}
+                  value={gdData.cap && gdData.cap > 0 ? gdData.cap : ''}
                   onChange={(e) => handleGdNumberChange('cap', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
@@ -1262,7 +1262,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
-                  value={formData.cap || ''}
+                  value={formData.cap && formData.cap > 0 ? formData.cap : ''}
                   onChange={(e) => handleNumberChange('cap', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 outline-none"
                 />
@@ -1494,7 +1494,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                 <label className={labelStyle}>Cuota de Alumbrado Público (C.A.P.) ($)</label>
                 <input
                   type="number" min="0" step="0.01"
-                  value={formData.cap || ''}
+                  value={formData.cap && formData.cap > 0 ? formData.cap : ''}
                   onChange={(e) => handleNumberChange('cap', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 outline-none"
                 />

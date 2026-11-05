@@ -77,7 +77,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
         bands,
         reconEPE: typeof data.reconEPE === 'number' ? Math.abs(data.reconEPE) : prev.reconEPE,
         reconGSF: prog === 'anterior' ? 0 : (validReconGSF > 0 ? validReconGSF : (typeof data.reconGSF === 'number' ? Math.abs(data.reconGSF) : prev.reconGSF)),
-        cap: typeof data.cap === 'number' ? data.cap : prev.cap,
+        cap: typeof data.cap === 'number' && data.cap > 0 ? data.cap : 0,
         ley12692: typeof data.ley12692 === 'number' ? data.ley12692 : prev.ley12692,
         totalBill: typeof data.totalBill === 'number' && data.totalBill > 0 ? data.totalBill : prev.totalBill,
         isRosario: typeof data.isRosario === 'boolean' ? data.isRosario : prev.isRosario,
@@ -363,7 +363,7 @@ const StepProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, on
                   type="number"
                   min="0"
                   step="0.01"
-                  value={formData.cap || ''}
+                  value={formData.cap && formData.cap > 0 ? formData.cap : ''}
                   onChange={(e) => handleNumberChange('cap', e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-violet-500 outline-none"
                 />
