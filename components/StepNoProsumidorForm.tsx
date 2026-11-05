@@ -150,6 +150,42 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
     }
   };
 
+  // Helper para normalizar kWh a números enteros redondos
+  const cleanKwhInteger = (val: any): number => {
+    if (val === null || val === undefined) return 0;
+    if (typeof val === 'number') {
+      if (Number.isInteger(val)) return Math.max(0, val);
+      const str = val.toString();
+      if (str.includes('.')) {
+        const parts = str.split('.');
+        if (parts[1] && parts[1].length === 3) {
+          const reconstructed = parseInt(parts[0] + parts[1], 10);
+          if (!isNaN(reconstructed)) return Math.max(0, reconstructed);
+        }
+      }
+      return Math.max(0, Math.round(val));
+    }
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (trimmed.includes('.') && trimmed.includes(',')) {
+        const withoutThousands = trimmed.replace(/\./g, '').split(',')[0];
+        const n = parseInt(withoutThousands, 10);
+        return isNaN(n) ? 0 : Math.max(0, n);
+      }
+      if (trimmed.includes('.')) {
+        const parts = trimmed.split('.');
+        if (parts.length > 1 && parts[parts.length - 1].length === 3) {
+          const n = parseInt(trimmed.replace(/\./g, ''), 10);
+          return isNaN(n) ? 0 : Math.max(0, n);
+        }
+      }
+      const cleaned = trimmed.replace(/\./g, '').replace(/,/g, '.');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : Math.max(0, Math.round(num));
+    }
+    return 0;
+  };
+
   const handleNoProsInvoiceDataExtracted = (data: any) => {
     setFormData(prev => {
       let bands = prev.bands;
@@ -169,12 +205,14 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
 
       let consumptionHistory = prev.consumptionHistory;
       if (data.consumptionHistory && Array.isArray(data.consumptionHistory) && data.consumptionHistory.length === 6) {
-        consumptionHistory = data.consumptionHistory.map((val: any) => (typeof val === 'number' ? Math.max(0, val) : 0));
+        consumptionHistory = data.consumptionHistory.map((val: any) => cleanKwhInteger(val));
       }
+
+      const totalCons = cleanKwhInteger(data.totalConsumption);
 
       return {
         ...prev,
-        totalConsumption: typeof data.totalConsumption === 'number' && data.totalConsumption > 0 ? data.totalConsumption : prev.totalConsumption,
+        totalConsumption: totalCons > 0 ? totalCons : prev.totalConsumption,
         consumptionHistory,
         serviceQuota: typeof data.serviceQuota === 'number' && data.serviceQuota > 0 ? data.serviceQuota : prev.serviceQuota,
         bands,
@@ -261,14 +299,19 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
   };
 
   const handleNumberChange = (field: keyof NoProsumidorData, valueStr: string) => {
+    if (field === 'totalConsumption') {
+      const val = valueStr === '' ? 0 : Math.round(parseFloat(valueStr));
+      handleChange(field, isNaN(val) ? 0 : Math.max(0, val));
+      return;
+    }
     const val = valueStr === '' ? 0 : parseFloat(valueStr);
     handleChange(field, Math.max(0, val));
   };
 
   const handleConsumptionHistoryChange = (index: number, valueStr: string) => {
-    const val = valueStr === '' ? 0 : parseFloat(valueStr);
+    const val = valueStr === '' ? 0 : Math.round(parseFloat(valueStr));
     const newHistory = [...formData.consumptionHistory];
-    newHistory[index] = Math.max(0, val);
+    newHistory[index] = isNaN(val) ? 0 : Math.max(0, val);
     setFormData(prev => ({ ...prev, consumptionHistory: newHistory }));
   };
 
@@ -469,7 +512,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             <div className="mb-6">
               <label className={labelStyle}>Consumo total (kWh)</label>
               <input
-                type="number" min="0" step="any"
+                type="number" min="0" step="1"
                 value={formData.totalConsumption || ''}
                 onChange={(e) => handleNumberChange('totalConsumption', e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 outline-none"
@@ -483,7 +526,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                   <div key={idx}>
                     <label className="block text-xs font-semibold text-gray-500 mb-1">BIM{idx + 1}</label>
                     <input
-                      type="number" min="0"
+                      type="number" min="0" step="1"
                       value={val || ''}
                       onChange={(e) => handleConsumptionHistoryChange(idx, e.target.value)}
                       className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none text-center"
@@ -1049,7 +1092,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             <div className="mb-6">
               <label className={labelStyle}>Consumo total (kWh)</label>
               <input
-                type="number" min="0" step="any"
+                type="number" min="0" step="1"
                 value={formData.totalConsumption || ''}
                 onChange={(e) => handleNumberChange('totalConsumption', e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 outline-none"
@@ -1063,7 +1106,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                   <div key={idx}>
                     <label className="block text-xs font-semibold text-gray-500 mb-1">BIM{idx + 1}</label>
                     <input
-                      type="number" min="0"
+                      type="number" min="0" step="1"
                       value={val || ''}
                       onChange={(e) => handleConsumptionHistoryChange(idx, e.target.value)}
                       className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none text-center"
@@ -1281,7 +1324,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
             <div className="mb-6">
               <label className={labelStyle}>Consumo total (kWh)</label>
               <input
-                type="number" min="0" step="any"
+                type="number" min="0" step="1"
                 value={formData.totalConsumption || ''}
                 onChange={(e) => handleNumberChange('totalConsumption', e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 outline-none"
@@ -1295,7 +1338,7 @@ const StepNoProsumidorForm: React.FC<Props> = ({ initialData, onSubmit, onBack, 
                   <div key={idx}>
                     <label className="block text-xs font-semibold text-gray-500 mb-1">BIM{idx + 1}</label>
                     <input
-                      type="number" min="0"
+                      type="number" min="0" step="1"
                       value={val || ''}
                       onChange={(e) => handleConsumptionHistoryChange(idx, e.target.value)}
                       className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none text-center"

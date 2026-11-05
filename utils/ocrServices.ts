@@ -356,7 +356,12 @@ Analiza minuciosamente esta factura de energía eléctrica de la EPE (Empresa Pr
 
 Extrae los siguientes campos con la máxima precisión numérica:
 1. "totalConsumption": Consumo total de energía activa en kWh del período facturado.
+   REGLA FUNDAMENTAL: Debe ser un número ENTERO y REDONDO en kWh, NUNCA decimal.
+   En las facturas de la EPE, el punto (.) se utiliza como separador de miles (por ejemplo "20.044" representa 20044 kWh y NUNCA 20 o 20,044; "15.000" representa 15000 kWh).
+   Debes devolver siempre el número entero exacto sin puntos ni comas de miles (ej: 20044).
 2. "consumptionHistory": Lista de exactamente 6 números con los consumos históricos en kWh de los últimos 6 bimestres que figuran en el gráfico o historial de consumos de la factura (ordenados cronológicamente desde el más antiguo al más reciente, o los 6 bimestres que aparezcan). Si hay menos de 6, completa con 0s hasta tener 6 números.
+   REGLA FUNDAMENTAL: Todos los valores del historial son números ENTEROS y REDONDOS en kWh, NUNCA decimales.
+   El punto (.) en los consumos es separador de miles ("20.044" es 20044, "15.000" es 15000). Debes devolver cada bimestre como número entero (ej: [20044, 18500, ...]).
 3. "serviceQuota": Cuota de servicio o cargo fijo final en pesos ($).
 4. "bands": Lista de bloques o bandas de consumo de energía activa.
    - Cada banda debe tener "energy" (consumo en kWh de esa banda) y "amount" (importe en pesos $ correspondiente a esa banda).
@@ -379,11 +384,17 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
   const noProsSchemaConfig = {
     type: Type.OBJECT,
     properties: {
-      totalConsumption: { type: Type.NUMBER, description: 'Consumo total (kWh)' },
+      totalConsumption: {
+        type: Type.INTEGER,
+        description: 'Consumo total (kWh) - Número ENTERO redondo sin decimales (ej: 20.044 se extrae como 20044)',
+      },
       consumptionHistory: {
         type: Type.ARRAY,
-        items: { type: Type.NUMBER },
-        description: 'Historial de consumos de los 6 bimestres (kWh)',
+        items: {
+          type: Type.INTEGER,
+          description: 'Consumo bimestral (kWh) - Número ENTERO redondo sin decimales (ej: 20044)',
+        },
+        description: 'Historial de consumos de los 6 bimestres (kWh) - Números enteros redondos',
       },
       serviceQuota: { type: Type.NUMBER, description: 'Cuota de servicio ($)' },
       bands: {
@@ -429,6 +440,50 @@ Si algún valor monetario o energético no aparece o no aplica en la factura, as
 
   const cleanJson = await generateWithFallback(ai, parts, noProsSchemaConfig, 'InvoiceScannerNoPros');
   const parsedData = JSON.parse(cleanJson);
+
+  // Normalizar y garantizar números enteros y redondos para totalConsumption y consumptionHistory
+  const cleanKwhInteger = (val: any): number => {
+    if (val === null || val === undefined) return 0;
+    if (typeof val === 'number') {
+      if (Number.isInteger(val)) return Math.max(0, val);
+      const str = val.toString();
+      if (str.includes('.')) {
+        const parts = str.split('.');
+        if (parts[1] && parts[1].length === 3) {
+          const reconstructed = parseInt(parts[0] + parts[1], 10);
+          if (!isNaN(reconstructed)) return Math.max(0, reconstructed);
+        }
+      }
+      return Math.max(0, Math.round(val));
+    }
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (trimmed.includes('.') && trimmed.includes(',')) {
+        const withoutThousands = trimmed.replace(/\./g, '').split(',')[0];
+        const n = parseInt(withoutThousands, 10);
+        return isNaN(n) ? 0 : Math.max(0, n);
+      }
+      if (trimmed.includes('.')) {
+        const parts = trimmed.split('.');
+        if (parts.length > 1 && parts[parts.length - 1].length === 3) {
+          const n = parseInt(trimmed.replace(/\./g, ''), 10);
+          return isNaN(n) ? 0 : Math.max(0, n);
+        }
+      }
+      const cleaned = trimmed.replace(/\./g, '').replace(/,/g, '.');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : Math.max(0, Math.round(num));
+    }
+    return 0;
+  };
+
+  parsedData.totalConsumption = cleanKwhInteger(parsedData.totalConsumption);
+  if (Array.isArray(parsedData.consumptionHistory)) {
+    parsedData.consumptionHistory = parsedData.consumptionHistory.map(cleanKwhInteger);
+  } else {
+    parsedData.consumptionHistory = [0, 0, 0, 0, 0, 0];
+  }
+
   const ley7797Amount = typeof parsedData.ley7797 === 'number' ? parsedData.ley7797 : 0;
   parsedData.aplicaLey7797 = ley7797Amount > 0;
   return parsedData;
