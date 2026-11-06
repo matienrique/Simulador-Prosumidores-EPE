@@ -492,7 +492,9 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   const subtotalBasicoConProsumidores = serviceQuota + bands.slice(0, limitIndex).reduce((sum, b) => sum + b.amount, 0) + (precioUnitario * energiaUltimaBandaConPros);
   
   const reconocimientoEPE = RECON_UNIT * energiaRecibida;
-  const baseImponible = subtotalBasicoConProsumidores - reconocimientoEPE;
+  // El importe básico para prosumidores (Cuota de Servicio + Bandas - Reconocimiento EPE) no puede ser negativo; si da negativo se toma cero.
+  const isImporteBasicoNegativo = (subtotalBasicoConProsumidores - reconocimientoEPE) < 0;
+  const baseImponible = isImporteBasicoNegativo ? 0 : (subtotalBasicoConProsumidores - reconocimientoEPE);
   
   const isRosarioApplicable = data.isRosario && (category === NoProsumidorCategory.RESIDENCIAL || category === NoProsumidorCategory.COMERCIAL || category === NoProsumidorCategory.INDUSTRIAL);
   const Orden_Mun_1592_62 = isRosarioApplicable ? 0.006 : 0;
@@ -514,6 +516,11 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
   const totalConsumoReal = bands.reduce((sum, b) => sum + b.energy, 0);
   const injectionPercent = safeDiv(energiaGenerada, totalConsumoReal) * 100;
 
+  // Para la Composición del ahorro de Resultados: si el importe básico fue negativo, el Reconocimiento de EPE es igual a Cuota de servicio + Importe de bandas (subtotalBasicoConProsumidores)
+  const reconEPEComposicion = isImporteBasicoNegativo ? subtotalBasicoConProsumidores : reconocimientoEPE;
+  const savingsTaxComposicion = ahorroTotal - (subtotalBasicoSinPros - subtotalBasicoConProsumidores) - (reconEPEComposicion + reconocimientoGSF);
+  const savingsReconComposicion = reconocimientoGSF + reconEPEComposicion;
+
   return {
     type: 'NO_PROSUMIDOR',
     billWithProsumers: facturaConPros,
@@ -521,8 +528,8 @@ export const calculateNoProsumidor = (data: NoProsumidorData): CalculationResult
     totalSavings: ahorroTotal,
     totalSavingsPercent: safeDiv(ahorroTotal, importeFacturaSinPros) * 100,
     savingsConsumption: subtotalBasicoSinPros - subtotalBasicoConProsumidores,
-    savingsTax: ahorroTotal - (subtotalBasicoSinPros - subtotalBasicoConProsumidores) - (reconocimientoEPE + reconocimientoGSF),
-    savingsRecon: reconocimientoEPE + reconocimientoGSF,
+    savingsTax: savingsTaxComposicion,
+    savingsRecon: savingsReconComposicion,
     autoconsumoKwh: autoconsumo2,
     autoconsumoPercent: autoconsumoPercent,
     injectionPercent: injectionPercent,
